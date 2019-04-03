@@ -1,0 +1,27 @@
+services:
+    # default configuration for services in *this* file
+    _defaults:
+        # automatically injects dependencies in your services
+        autowire: true
+        # automatically registers your services as commands, event subscribers, etc.
+        autoconfigure: true
+        # this means you cannot fetch services directly from the container via $container->get()
+        # if you need to do this, you can override this setting on individual services
+        public: false
+
+# add more services, or override services that need manual wiring
+#    DivanteScheduledExportBundle\ExampleClass:
+#        arguments:
+#            - "@service_id"
+#            - "plain_value"
+#            - "%parameter%"
+
+    scheduledexport.process_manager.process:
+          class: Divante\ScheduledExportBundle\ProcessManager\ScheduledExportProcess
+          tags:
+            - { name: 'process_manager.process', type: 'scheduledexport', form-type: Divante\ScheduledExportBundle\Form\Type\ProcessManager\ScheduledExportType }
+
+    Divante\ScheduledExportBundle\Controller\:
+          resource: '../../Controller'
+          public: true
+          tags: ['controller.service_arguments']

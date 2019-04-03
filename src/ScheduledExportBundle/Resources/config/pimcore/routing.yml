@@ -1,0 +1,4 @@
+divante_scheduled_export:
+    resource: "@DivanteScheduledExportBundle/Controller/"
+    type:     annotation
+    prefix:   /
