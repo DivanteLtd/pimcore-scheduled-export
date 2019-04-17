@@ -1,51 +1,51 @@
 {
-    "name": "divante/scheduled-export",
-    "type": "pimcore-bundle",
-    "license": "GPL-3.0-or-later",
-    "description": "Scheduled Export lets you run ordinary grid exports in background.",
-    "keywords": [
-      "pimcore",
-      "pimcore-plugin"
-    ],
-    "homepage": "https://www.divante.co/",
-    "authors": [
-      {
-        "name": "Anna Zavodian",
-        "email": "azavodian@divante.pl",
-        "role": "Developer"
-      },
-      {
-        "name": "Monika Litwin",
-        "email": "mlitwin@divante.pl",
-        "role": "Developer"
-      },
-      {
-        "name": "Jakub Płaskonka",
-        "email": "jplaskonka@divante.pl",
-        "role": "Developer"
-      },
-      {
-        "name": "Wojciech Peisert",
-        "email": "wpeisert@divante.pl",
-        "role": "Developer"
-      }
-    ],
-    "require": {
-      "dpfaffenbauer/process-manager": "^2.0"
+  "name": "divante/scheduled-export",
+  "type": "pimcore-bundle",
+  "license": "GPL-3.0-or-later",
+  "description": "Scheduled Export lets you run ordinary grid exports in background.",
+  "keywords": [
+    "pimcore",
+    "pimcore-plugin"
+  ],
+  "homepage": "https://www.divante.co/",
+  "authors": [
+    {
+      "name": "Anna Zavodian",
+      "email": "azavodian@divante.pl",
+      "role": "Developer"
     },
-    "autoload": {
-      "psr-4": {
-        "Divante\\ScheduledExportBundle\\": "src/ScheduledExportBundle"
-      }
+    {
+      "name": "Monika Litwin",
+      "email": "mlitwin@divante.pl",
+      "role": "Developer"
     },
-    "extra": {
-      "pimcore": {
-        "bundles": [
-          "Divante\\ScheduledExportBundle\\ScheduledExportBundle"
-        ]
-      },
-      "branch-alias": {
-        "dev-master": "1.0-dev"
-      }
+    {
+      "name": "Jakub Płaskonka",
+      "email": "jplaskonka@divante.pl",
+      "role": "Developer"
+    },
+    {
+      "name": "Wojciech Peisert",
+      "email": "wpeisert@divante.pl",
+      "role": "Developer"
+    }
+  ],
+  "require": {
+    "dpfaffenbauer/process-manager": "^2.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "Divante\\ScheduledExportBundle\\": "src/ScheduledExportBundle"
+    }
+  },
+  "extra": {
+    "pimcore": {
+      "bundles": [
+        "Divante\\ScheduledExportBundle\\ScheduledExportBundle"
+      ]
+    },
+    "branch-alias": {
+      "dev-master": "1.0-dev"
     }
   }
+}
