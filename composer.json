@@ -35,13 +35,13 @@
     },
     "autoload": {
       "psr-4": {
-        "ProcessManagerBundle\\": "src/ScheduledExportBundle"
+        "Divante\\ScheduledExportBundle\\": "src/ScheduledExportBundle"
       }
     },
     "extra": {
       "pimcore": {
         "bundles": [
-          "Divante\\ScheduledExportBundle"
+          "Divante\\ScheduledExportBundle\\ScheduledExportBundle"
         ]
       },
       "branch-alias": {
