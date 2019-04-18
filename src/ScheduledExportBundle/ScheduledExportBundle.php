@@ -11,7 +11,7 @@ namespace Divante\ScheduledExportBundle;
 use Pimcore\Extension\Bundle\AbstractPimcoreBundle;
 
 /**
- * Class DivanteScheduledExportBundle
+ * Class ScheduledExportBundle
  * @package Divante\ScheduledExportBundle
  */
 class ScheduledExportBundle extends AbstractPimcoreBundle
@@ -46,8 +46,8 @@ class ScheduledExportBundle extends AbstractPimcoreBundle
     public function getJsPaths()
     {
         return [
-            '/bundles/scheduledexport/js/pimcore/startup.js',
-            '/bundles/scheduledexport/js/pimcore/process-manager/scheduled-export.js'
+            '/bundles/scheduledexport/pimcore/js/startup.js',
+            '/bundles/scheduledexport/pimcore/js/process-manager/scheduled-export.js'
         ];
     }
 
@@ -57,7 +57,7 @@ class ScheduledExportBundle extends AbstractPimcoreBundle
     public function getCssPaths()
     {
         return [
-            '/bundles/scheduledexport/css/importdefinition.css',
+            '/bundles/scheduledexport/pimcore/css/importdefinition.css',
         ];
     }
 }
