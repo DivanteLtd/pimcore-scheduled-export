@@ -1,6 +1,5 @@
 <?php
 /**
- * @category  Wurth
  * @date      05/01/18 13:43
  * @author    Anna Zavodian <azavodian@divante.pl>
  * @copyright Copyright (c) 2017 Divante Ltd. (https://divante.co)
