@@ -28,10 +28,26 @@
       "name": "Wojciech Peisert",
       "email": "wpeisert@divante.pl",
       "role": "Developer"
+    },
+    {
+      "name": "Bruno Ramalho",
+      "email": "bramalho@divante.pl",
+      "role": "Developer"
     }
   ],
   "require": {
+    "pimcore/pimcore": "^5.5",
     "dpfaffenbauer/process-manager": "^2.0"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^7.5",
+    "symfony/phpunit-bridge": "^4.2",
+    "divante-ltd/pimcore-coding-standards": "^0.1.1",
+    "phpmd/phpmd": "^2.6",
+    "sebastian/phpcpd": "^4.1",
+    "block8/php-docblock-checker": "^1.10",
+    "phploc/phploc": "^4.0.0",
+    "codeception/codeception": "^3.0"
   },
   "autoload": {
     "psr-4": {
