@@ -57,7 +57,7 @@
   "extra": {
     "pimcore": {
       "bundles": [
-        "Divante\\ScheduledExportBundle\\ScheduledExportBundle"
+        "Divante\\ScheduledExportBundle\\DivanteScheduledExportBundle"
       ]
     },
     "branch-alias": {

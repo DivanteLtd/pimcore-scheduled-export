@@ -15,6 +15,6 @@ services:
           tags: ['controller.service_arguments']
 
     scheduledexport.process_manager.process:
-        class: Divante\ScheduledExportBundle\ProcessManager\ScheduledExportProcess
+        class: Divante\DivanteScheduledExportBundle\ProcessManager\ScheduledExportProcess
         tags:
-            - { name: 'process_manager.process', type: 'scheduledexport', form-type: Divante\ScheduledExportBundle\Form\Type\ProcessManager\ScheduledExportType }
+            - { name: 'process_manager.process', type: 'scheduledexport', form-type: Divante\DivanteScheduledExportBundle\Form\Type\ProcessManager\ScheduledExportType }
