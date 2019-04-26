@@ -8,15 +8,10 @@ DEPENDENCIES="$( cd "$(dirname "$0")" ; pwd -P )/dependencies.txt"
 PACKAGE_NAME="ScheduledExportBundle"
 BUNDLE_NAME="DivanteScheduledExportBundle"
 
-#DB_HOST=${DB_HOST-localhost}
-#DB_PORT=${DB_PORT-3306}
-#DB_USERNAME=${DB_USERNAME-root}
-#DB_PASSWORD=${DB_PASSWORD-root}
-#DB_DATABASE=${DB_DATABASE-pimcore_test}
-DB_HOST=${DB_HOST-192.168.10.10}
+DB_HOST=${DB_HOST-localhost}
 DB_PORT=${DB_PORT-3306}
-DB_USERNAME=${DB_USERNAME-homestead}
-DB_PASSWORD=${DB_PASSWORD-secret}
+DB_USERNAME=${DB_USERNAME-root}
+DB_PASSWORD=${DB_PASSWORD-root}
 DB_DATABASE=${DB_DATABASE-pimcore_test}
 
 echo -e "\e[34m=> Start installing project \e[0m"
