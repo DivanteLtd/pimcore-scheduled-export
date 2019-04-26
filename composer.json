@@ -1,5 +1,5 @@
 {
-  "name": "divante/scheduled-export",
+  "name": "divante-ltd/pimcore-scheduled-export",
   "type": "pimcore-bundle",
   "license": "GPL-3.0-or-later",
   "description": "Scheduled Export lets you run ordinary grid exports in background.",
