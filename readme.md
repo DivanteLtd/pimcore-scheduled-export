@@ -6,6 +6,8 @@
 
 Scheduled Export lets you run ordinary grid exports in background.
 
+![Scheduled Export](docs/example.jpeg?raw=true "Scheduled Export")
+
 **Table of Contents**
 - [Classification Tree](#classification-tree)
 	- [Compatibility](#compatibility)
