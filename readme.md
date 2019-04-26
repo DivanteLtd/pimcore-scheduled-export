@@ -1,8 +1,8 @@
 # Scheduled Export
-[![Build Status](https://travis-ci.org/DivanteLtd/divante-ltd/pimcore-scheduled-export.svg?branch=master)](https://travis-ci.org/DivanteLtd/divante-ltd/pimcore-scheduled-export)
-[![Latest Stable Version](https://poser.pugx.org/divante-ltd/divante-ltd/pimcore-scheduled-export/v/stable)](https://packagist.org/packages/divante-ltd/divante-ltd/pimcore-scheduled-export)
-[![Total Downloads](https://poser.pugx.org/divante-ltd/divante-ltd/pimcore-scheduled-export/downloads)](https://packagist.org/packages/divante-ltd/divante-ltd/pimcore-scheduled-export)
-[![License](https://poser.pugx.org/divante-ltd/divante-ltd/pimcore-scheduled-export/license)](https://github.com/DivanteLtd/divante-ltd/pimcore-scheduled-export/blob/master/LICENSE)
+[![Build Status](https://travis-ci.org/DivanteLtd/pimcore-scheduled-export.svg?branch=master)](https://travis-ci.org/DivanteLtd/pimcore-scheduled-export)
+[![Latest Stable Version](https://poser.pugx.org/divante-ltd/pimcore-scheduled-export/v/stable)](https://packagist.org/packages/divante-ltd/pimcore-scheduled-export)
+[![Total Downloads](https://poser.pugx.org/divante-ltd/pimcore-scheduled-export/downloads)](https://packagist.org/packages/divante-ltd/pimcore-scheduled-export)
+[![License](https://poser.pugx.org/divante-ltd/pimcore-scheduled-export/license)](https://github.com/DivanteLtd/divante-ltd/pimcore-scheduled-export/blob/master/LICENSE)
 
 Scheduled Export lets you run ordinary grid exports in background.
 
@@ -27,7 +27,7 @@ This module is compatible with Pimcore 5.3.0 and higher.
 ## Installing/Getting startedr
 
 ```bash
-composer require divante-ltd/divante-ltd/pimcore-scheduled-export
+composer require divante-ltd/pimcore-scheduled-export
 ```
 
 Enable the Bundle:
