@@ -4,7 +4,7 @@ namespace Tests\Unit\Divante\ScheduledExportBundle\Service;
 
 use PHPUnit\Framework\TestCase;
 
-class ClassificationTreeBuilderTest extends TestCase
+class ServiceTest extends TestCase
 {
     public function testSomething()
     {
