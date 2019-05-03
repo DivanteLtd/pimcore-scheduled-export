@@ -5,9 +5,10 @@ set -eu
 PROJECT_DIR="$( cd "$(dirname "$0")" ; pwd -P )/../tmp"
 DEPENDENCIES="$( cd "$(dirname "$0")" ; pwd -P )/dependencies.txt"
 
-PACKAGE_NAME="ScheduledExportBundle"
-BUNDLE_NAME="DivanteScheduledExportBundle"
+PACKAGE_NAME="EtimBundle"
+BUNDLE_NAME="DivanteEtimBundle"
 
+CREATE_DB=${CREATE_DB-true}
 DB_HOST=${DB_HOST-localhost}
 DB_PORT=${DB_PORT-3306}
 DB_USERNAME=${DB_USERNAME-root}
@@ -35,43 +36,45 @@ cd $PROJECT_DIR
 echo -e "\e[32m=> Install dependencies \e[0m"
 COMPOSER_DISCARD_CHANGES=true COMPOSER_MEMORY_LIMIT=-1 composer install --no-interaction --optimize-autoloader
 
-echo -e "\e[32m=> Create Database \e[0m"
+MYSQL_COMMAND="mysql"
+INSTALL_COMMAND="vendor/bin/pimcore-install --ignore-existing-config --admin-username admin --admin-password admin"
 
-if test -z "$DB_PASSWORD"
+if ! test -z "$DB_HOST"
 then
-    mysql --host=$DB_HOST --port=$DB_PORT --user=$DB_USERNAME \
-        -e "DROP DATABASE IF EXISTS $DB_DATABASE; CREATE DATABASE $DB_DATABASE CHARSET=utf8mb4;"
-else
-    mysql --host=$DB_HOST --port=$DB_PORT --user=$DB_USERNAME --password=$DB_PASSWORD \
-        -e "DROP DATABASE IF EXISTS $DB_DATABASE; CREATE DATABASE $DB_DATABASE CHARSET=utf8mb4;"
+    MYSQL_COMMAND="$MYSQL_COMMAND --host=$DB_HOST"
+    INSTALL_COMMAND="$INSTALL_COMMAND --mysql-host-socket $DB_HOST"
+fi
+
+if ! test -z "$DB_PORT"
+then
+    MYSQL_COMMAND="$MYSQL_COMMAND --port=$DB_PORT"
+    INSTALL_COMMAND="$INSTALL_COMMAND --mysql-port $DB_PORT"
+fi
+
+if ! test -z "$DB_USERNAME"
+then
+    MYSQL_COMMAND="$MYSQL_COMMAND --user=$DB_USERNAME"
+    INSTALL_COMMAND="$INSTALL_COMMAND --mysql-username $DB_USERNAME"
+fi
+
+if ! test -z "$DB_PASSWORD"
+then
+    MYSQL_COMMAND="$MYSQL_COMMAND --password=$DB_PASSWORD"
+    INSTALL_COMMAND="$INSTALL_COMMAND --mysql-password $DB_PASSWORD"
+fi
+
+MYSQL_COMMAND="$MYSQL_COMMAND -e "\""DROP DATABASE IF EXISTS $DB_DATABASE; CREATE DATABASE $DB_DATABASE CHARSET=utf8mb4;"\"""
+INSTALL_COMMAND="$INSTALL_COMMAND --mysql-database $DB_DATABASE --no-debug --no-interaction"
+
+if $CREATE_DB = true
+then
+    echo -e "\e[32m=> Create Database \e[0m"
+    bash -c "$MYSQL_COMMAND"
 fi
 
 echo -e "\e[32m=> Install Pimcore \e[0m"
-if test -z "$DB_PASSWORD"
-then
-    vendor/bin/pimcore-install \
-        --ignore-existing-config \
-        --admin-username admin \
-        --admin-password admin \
-        --mysql-host-socket $DB_HOST \
-        --mysql-database $DB_DATABASE \
-        --mysql-username $DB_USERNAME \
-        --mysql-port $DB_PORT \
-        --no-debug \
-        --no-interaction
-else
-    vendor/bin/pimcore-install \
-        --ignore-existing-config \
-        --admin-username admin \
-        --admin-password admin \
-        --mysql-host-socket $DB_HOST \
-        --mysql-database $DB_DATABASE \
-        --mysql-username $DB_USERNAME \
-        --mysql-password $DB_PASSWORD \
-        --mysql-port $DB_PORT \
-        --no-debug \
-        --no-interaction
-fi
+echo $INSTALL_COMMAND
+bash -c "$INSTALL_COMMAND"
 
 echo -e "\e[32m=> Enable Bundles \e[0m"
 while read -r line; do
