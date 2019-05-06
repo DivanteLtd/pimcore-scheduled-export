@@ -19,6 +19,8 @@ class GridConfigController extends AdminController
     /**
      * @param Request $request
      * @return \Pimcore\Bundle\AdminBundle\HttpFoundation\JsonResponse
+     * @throws \Exception
+     *
      * @Route("/admin/scheduled-export/grid-config/get-list")
      */
     public function getListAction(Request $request)
@@ -33,7 +35,7 @@ class GridConfigController extends AdminController
             $user = \Pimcore\Model\User::getById($gridConfig->getOwnerId());
             $result[] = [
                 "id"    => $gridConfig->getId(),
-                "name"  => $classDefinition->getName().":".$gridConfig->getName()." (".$user->getName().")"
+                "name"  => $classDefinition->getName() . ":" . $gridConfig->getName() . " (" . $user->getName() . ")"
             ];
         }
 

@@ -17,6 +17,7 @@ use Pimcore\Localization\LocaleService;
 use Pimcore\Model\DataObject\Folder;
 use Pimcore\Tool;
 use Symfony\Component\HttpFoundation\Session\Attribute\AttributeBagInterface;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Class Export
@@ -37,18 +38,15 @@ class Export
     private $timestamp;
     private $container;
 
-    /**
-     * @var bool
-     */
+    /** @var bool $onlyChanges */
     private $onlyChanges;
 
-    /**
-     * @var int
-     */
+    /** @var int $changesFromTimestamp */
     private $changesFromTimestamp;
 
     /**
-     * @param mixed $objectsFolder
+     * @param string $objectsFolder
+     * @return void
      */
     public function setObjectsFolder($objectsFolder): void
     {
@@ -56,7 +54,8 @@ class Export
     }
 
     /**
-     * @param mixed $assetFolder
+     * @param string $assetFolder
+     * @return void
      */
     public function setAssetFolder($assetFolder): void
     {
@@ -64,7 +63,8 @@ class Export
     }
 
     /**
-     * @param mixed $condition
+     * @param string|null $condition
+     * @return void
      */
     public function setCondition($condition): void
     {
@@ -73,6 +73,7 @@ class Export
 
     /**
      * @param bool $timestamp
+     * @return void
      */
     public function setTimestamp(bool $timestamp): void
     {
@@ -85,6 +86,7 @@ class Export
 
     /**
      * @param string $onlyChanges
+     * @return void
      */
     public function setOnlyChanges(string $onlyChanges): void
     {
@@ -102,6 +104,7 @@ class Export
 
     /**
      * @param string $gridId
+     * @return void
      * @throws \Exception
      */
     public function setGridConfig(string $gridId): void
@@ -111,6 +114,7 @@ class Export
 
     /**
      * @param string $fileName
+     * @return void
      */
     public function setFileName(string $fileName): void
     {
@@ -122,7 +126,8 @@ class Export
     }
 
     /**
-     * @param mixed $container
+     * @param ContainerInterface $container
+     * @return void
      */
     public function setContainer($container): void
     {
@@ -134,11 +139,11 @@ class Export
      * @param string $gridConfig
      * @param string $objectsFolder
      * @param string $assetFolder
-     * @param               $container
+     * @param ContainerInterface $container
      * @param string|null $condition
      * @param string|null $fileName
-     * @param string|null $timestamp
-     * @param string|null $onlyChanges
+     * @param string $timestamp
+     * @param string $onlyChanges
      * @throws \Exception
      */
     public function __construct(
@@ -242,7 +247,8 @@ class Export
     }
 
     /**
-     * @param $fieldsRaw
+     * @param array $fieldsRaw
+     * @return void
      */
     protected function setHelperColumnsInSession($fieldsRaw): void
     {
@@ -282,7 +288,7 @@ class Export
     }
 
     /**
-     * @param $assetFolder
+     * @param string $assetFolder
      * @return Asset
      */
     protected function prepareAssetFile($assetFolder): Asset
