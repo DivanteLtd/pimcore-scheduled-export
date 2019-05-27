@@ -229,7 +229,7 @@ class Export
 
         $objectsList = new \Pimcore\Model\DataObject\Listing();
         $objectsList->setCondition($this->condition);
-        $objectsList->addConditionParam("o_path = ?", $objectsFolder->getFullPath() . '/', "AND");
+        $objectsList->addConditionParam("o_path LIKE ?", $objectsFolder->getFullPath() . '/%', "AND");
         $objectsList->addConditionParam("o_classId = ?", $this->gridConfig->classId, "AND");
 
         if ($this->changesFromTimestamp) {
