@@ -7,9 +7,13 @@
 
 namespace Divante\ScheduledExportBundle\ProcessManager;
 
+use Pimcore\Bootstrap;
+use Pimcore\Console\Application;
 use Pimcore\Tool\Console;
 use ProcessManagerBundle\Model\ExecutableInterface;
 use ProcessManagerBundle\Process\ProcessInterface;
+use Symfony\Component\DependencyInjection\ContainerAwareTrait;
+use Symfony\Component\HttpKernel\Kernel;
 
 /**
  * Class ScheduledExportProcess
@@ -38,6 +42,10 @@ final class ScheduledExportProcess implements ProcessInterface
 
         $command = PIMCORE_PROJECT_ROOT . "/bin/console " . $command;
 
-        return Console::runPhpScriptInBackground($command);
+        if ($settings['foreground']) {
+            return Console::runPhpScript($command);
+        } else {
+            return Console::runPhpScriptInBackground($command);
+        };
     }
 }

@@ -36,6 +36,7 @@ class Export
     private $condition;
     private $fileName;
     private $timestamp;
+    private $importStartTimestamp;
     private $container;
 
     /** @var bool $onlyChanges */
@@ -90,7 +91,7 @@ class Export
      */
     public function setOnlyChanges(string $onlyChanges): void
     {
-        $settings = new StringWebsiteSettings(self::WS_NAME);
+        $settings = new StringWebsiteSettings($this->gridConfig->getId() . "_" . self::WS_NAME);
         if ($onlyChanges === "1") {
             $this->onlyChanges = true;
             $this->changesFromTimestamp = strtotime($settings->getData());
@@ -99,7 +100,18 @@ class Export
             $this->changesFromTimestamp = 0;
         }
 
-        $settings->setData(strftime("%Y-%m-%d %T"));
+        $this->importStartTimestamp = time();
+    }
+
+    /**
+     *
+     */
+    private function updateSettingsDate(): void
+    {
+        if ($this->onlyChanges) {
+            $settings = new StringWebsiteSettings($this->gridConfig->getId() . "_" . self::WS_NAME);
+            $settings->setData(strftime("%Y-%m-%d %T", $this->importStartTimestamp));
+        }
     }
 
     /**
@@ -157,8 +169,8 @@ class Export
         string $onlyChanges = "0"
     ) {
         $this->setTimestamp($timestamp);
-        $this->setOnlyChanges($onlyChanges);
         $this->setGridConfig($gridConfig);
+        $this->setOnlyChanges($onlyChanges);
         $this->setObjectsFolder($objectsFolder);
         $this->setAssetFolder($assetFolder);
         $this->setCondition($condition);
@@ -183,6 +195,7 @@ class Export
         $controller->doExportAction($request, $localeService);
 
         $this->saveFileInAssets();
+        $this->updateSettingsDate();
     }
 
     /**
@@ -236,14 +249,7 @@ class Export
             $objectsList->addConditionParam("o_modificationDate >= ?", $this->changesFromTimestamp, "AND");
         }
         $objectsList->setUnpublished(true);
-        $objectsList = $objectsList->load();
-
-        $ids = [];
-        foreach ($objectsList as $object) {
-            $ids[] = $object->getId();
-        }
-
-        return $ids;
+        return $objectsList->loadIdList();
     }
 
     /**
