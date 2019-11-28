@@ -8,6 +8,7 @@
 namespace Divante\ScheduledExportBundle;
 
 use Pimcore\Extension\Bundle\AbstractPimcoreBundle;
+use Pimcore\Extension\Bundle\Traits\PackageVersionTrait;
 
 /**
  * Class ScheduledExportBundle
@@ -15,8 +16,18 @@ use Pimcore\Extension\Bundle\AbstractPimcoreBundle;
  */
 class DivanteScheduledExportBundle extends AbstractPimcoreBundle
 {
+    use PackageVersionTrait;
+
     /**
-     * @return array|\Pimcore\Routing\RouteReferenceInterface[]|string[]
+     * {@inheritdoc}
+     */
+    protected function getComposerPackageName()
+    {
+        return 'divante-ltd/pimcore-scheduled-export';
+    }
+
+    /**
+     * {@inheritdoc}
      */
     public function getJsPaths()
     {
@@ -27,7 +38,7 @@ class DivanteScheduledExportBundle extends AbstractPimcoreBundle
     }
 
     /**
-     * @return array|\Pimcore\Routing\RouteReferenceInterface[]|string[]
+     * {@inheritdoc}
      */
     public function getCssPaths()
     {

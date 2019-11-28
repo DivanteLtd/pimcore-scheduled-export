@@ -23,7 +23,7 @@ Scheduled Export lets you run ordinary grid exports in background.
 
 ## Compatibility
 
-This module is compatible with Pimcore 5.3.0 and higher.
+This module is compatible with Pimcore 5.5.0 and higher.
 
 ## Installing/Getting startedr
 
