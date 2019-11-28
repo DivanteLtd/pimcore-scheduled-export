@@ -9,6 +9,8 @@ jobs:
     - name: Checkout Repository
       uses: actions/checkout@v1
 
-    - name: test
+    - name: phpcs
       run: |
-        ls -la
+        composer global require "divante-ltd/pimcore-coding-standards":"^0.1" --no-interaction --prefer-dist --ignore-platform-reqs --quiet
+        /home/runner/.composer/vendor/bin/phpcs --config-set colors 1
+        /home/runner/.composer/vendor/bin/phpcs --extensions=php --standard=/root/.composer/vendor/divante-ltd/pimcore-coding-standards/Standards/Pimcore5/ruleset.xml ./src  -s
