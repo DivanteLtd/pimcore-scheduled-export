@@ -73,6 +73,12 @@ EOT
                 'Append timestamp'
             )
             ->addOption(
+                'format',
+                '',
+                InputOption::VALUE_OPTIONAL,
+                'Timestamp format'
+            )
+            ->addOption(
                 'only-changes',
                 '',
                 InputOption::VALUE_OPTIONAL,
@@ -97,7 +103,8 @@ EOT
             (string) $input->getOption("condition"),
             (string) $input->getOption("filename"),
             (string) $input->getOption("timestamp"),
-            (string) $input->getOption("only-changes")
+            (string) $input->getOption("only-changes"),
+            (string) $input->getOption("format")
         );
 
         $export->export();
