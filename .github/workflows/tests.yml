@@ -25,3 +25,16 @@ jobs:
 
       - name: Checkout Repository
         uses: actions/checkout@v1
+
+      - name: Install Project
+        env:
+          DB_HOST: "localhost"
+          DB_PORT: "3306"
+          DB_USERNAME: "root"
+          DB_PASSWORD: ""
+          DB_DATABASE: "pimcore_test"
+          PIMCORE_ENVIRONMENT: "test"
+          PIMCORE_TEST: "1"
+          PIMCORE_TEST_DB_DSN: "mysql://root@localhost/pimcore_test"
+        run: |
+          ./scripts/install.sh
