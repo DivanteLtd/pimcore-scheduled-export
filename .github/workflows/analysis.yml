@@ -21,7 +21,8 @@ jobs:
 
     - name: PHP Mess Detector
       run: |
-        composer global require "phpmd/phpmd":"^2.6" --no-interaction --prefer-dist --ignore-platform-reqs --quiet
+        composer global require "phpmd/phpmd":"^2.6" \
+          --no-interaction --prefer-dist --ignore-platform-reqs --quiet
         /home/runner/.composer/vendor/bin/phpmd src text \
           /home/runner/.composer/vendor/divante-ltd/pimcore-coding-standards/Standards/Pimcore5/rulesetmd.xml
 
@@ -30,3 +31,15 @@ jobs:
         composer global require "sebastian/phpcpd":"^4.1" \
           --no-interaction --prefer-dist --ignore-platform-reqs --quiet
         /home/runner/.composer/vendor/bin/phpcpd src
+
+    - name: PHP DocBlock Checker
+      run: |
+        composer global require "block8/php-docblock-checker":"^1.10" \
+          --no-interaction --prefer-dist --ignore-platform-reqs --quiet
+        /home/runner/.composer/vendor/bin/phpdoccheck --directory=src
+
+    - name: Security Checker
+      run: |
+        composer global require "sensiolabs/security-checker":"~5.0" \
+          --no-interaction --prefer-dist --ignore-platform-reqs --quiet
+        /home/runner/.composer/vendor/bin/security-checker security:check
