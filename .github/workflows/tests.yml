@@ -45,6 +45,8 @@ jobs:
           ./scripts/install.sh
 
       - name: Unit Tests
+        env:
+          PIMCORE_TEST_DB_DSN: "mysql://root:root@localhost/pimcore_test"
         run: |
           cd tmp
           ./vendor/bin/phpunit --coverage-text
