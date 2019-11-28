@@ -13,15 +13,15 @@ jobs:
           MYSQL_ROOT_PASSWORD: root
           MYSQL_DATABASE: pimcore_test
         ports:
-          - '8888:3306'
+          - 33306:3306
         options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
 
     steps:
       - name: Setup DB
         run: |
           mysql --version
-          mysql -u root -proot --port 8888 -e "SET GLOBAL innodb_file_format=Barracuda;"
-          mysql -u root -proot --port 8888 -e "SET GLOBAL innodb_large_prefix=1;"
+          mysql -u root -proot -e "SET GLOBAL innodb_file_format=Barracuda;"
+          mysql -u root -proot -e "SET GLOBAL innodb_large_prefix=1;"
 
       - name: PHP Runner
         uses: nanasess/setup-php@master
@@ -33,13 +33,13 @@ jobs:
 
       - name: Install Project
         env:
-          DB_HOST: "127.0.0.1"
-          DB_PORT: "8888"
+          DB_HOST: "localhost"
+          DB_PORT: "3306"
           DB_USERNAME: "root"
           DB_PASSWORD: "root"
           DB_DATABASE: "pimcore_test"
           PIMCORE_ENVIRONMENT: "test"
           PIMCORE_TEST: "1"
-          PIMCORE_TEST_DB_DSN: "mysql://root@localhost/pimcore_test"
+          PIMCORE_TEST_DB_DSN: "mysql://root:root@localhost/pimcore_test"
         run: |
           ./scripts/install.sh
