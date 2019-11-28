@@ -4,8 +4,8 @@ cache:
     directories:
         - $HOME/.cache/composer
 
-addons:
-    mariadb: '10.1'
+services:
+    - mysql
 
 env:
     global:
