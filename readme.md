@@ -1,5 +1,6 @@
 # Scheduled Export
-[![Build Status](https://travis-ci.org/DivanteLtd/pimcore-scheduled-export.svg?branch=master)](https://travis-ci.org/DivanteLtd/pimcore-scheduled-export)
+[![Analysis Actions](https://github.com/DivanteLtd/pimcore-scheduled-export/workflows/Analysis/badge.svg)](https://github.com/DivanteLtd/pimcore-scheduled-export/actions)
+[![Tests Actions](https://github.com/DivanteLtd/pimcore-scheduled-export/workflows/Tests/badge.svg)](https://github.com/DivanteLtd/pimcore-scheduled-export/actions)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/2c51a42a456c47c9971a7e2a48bcd6f4)](https://www.codacy.com/app/Divante/pimcore-scheduled-export?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=DivanteLtd/pimcore-scheduled-export&amp;utm_campaign=Badge_Grade)
 [![Latest Stable Version](https://poser.pugx.org/divante-ltd/pimcore-scheduled-export/v/stable)](https://packagist.org/packages/divante-ltd/pimcore-scheduled-export)
 [![Total Downloads](https://poser.pugx.org/divante-ltd/pimcore-scheduled-export/downloads)](https://packagist.org/packages/divante-ltd/pimcore-scheduled-export)
