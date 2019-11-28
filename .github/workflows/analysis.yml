@@ -37,9 +37,3 @@ jobs:
         composer global require "block8/php-docblock-checker":"^1.10" \
           --no-interaction --prefer-dist --ignore-platform-reqs --quiet
         /home/runner/.composer/vendor/bin/phpdoccheck --directory=src
-
-    - name: Security Checker
-      run: |
-        composer global require "sensiolabs/security-checker":"~5.0" \
-          --no-interaction --prefer-dist --ignore-platform-reqs --quiet
-        /home/runner/.composer/vendor/bin/security-checker security:check
