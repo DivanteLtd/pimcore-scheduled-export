@@ -1,0 +1,14 @@
+name: Analysis
+on: [push]
+
+jobs:
+  build:
+    name: Analysis
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v1
+
+    - name: test
+      run: |
+        ls -la
