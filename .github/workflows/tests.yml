@@ -21,6 +21,5 @@ jobs:
         run: |
           mysql --version
 
-    steps:
       - name: Checkout Repository
         uses: actions/checkout@v1
