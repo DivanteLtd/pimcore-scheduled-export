@@ -118,7 +118,13 @@ $(document).on("processmanager.ready", function() {
                     fieldLabel: t('scheduledexport_add_timestamp'),
                     name: 'add_timestamp',
                     value: this.data.settings.add_timestamp,
-                }
+                }, {
+                    xtype: 'textfield',
+                    fieldLabel: t('scheduledexport_timestamp'),
+                    name: 'timestamp',
+                    value: this.data.settings.condition,
+                    emptyText: t('scheduledexport_timestamp_example')
+                },
             ];
         },
 

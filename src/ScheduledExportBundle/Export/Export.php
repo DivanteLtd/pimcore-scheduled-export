@@ -36,6 +36,7 @@ class Export
     private $condition;
     private $fileName;
     private $timestamp;
+    private $timestampFormat;
     private $importStartTimestamp;
     private $container;
 
@@ -86,6 +87,22 @@ class Export
     }
 
     /**
+     * @return string
+     */
+    public function getTimestampFormat()
+    {
+        return $this->timestampFormat;
+    }
+
+    /**
+     * @param mixed $timestampFormat
+     */
+    public function setTimestampFormat(string $timestampFormat): void
+    {
+        $this->timestampFormat = $timestampFormat;
+    }
+
+    /**
      * @param string $onlyChanges
      * @return void
      */
@@ -131,7 +148,13 @@ class Export
     public function setFileName(string $fileName): void
     {
         if ($this->timestamp) {
-            $fileName = $fileName . '-' . time();
+            if ($this->timestampFormat == "") {
+                $format = "-%s";
+            } else {
+                $format = $this->timestampFormat;
+            }
+
+            $fileName = $fileName . strftime($format);
         }
 
         $this->fileName = $fileName;
@@ -166,7 +189,8 @@ class Export
         string $condition = null,
         string $fileName = null,
         string $timestamp = "0",
-        string $onlyChanges = "0"
+        string $onlyChanges = "0",
+        string $timestampFormat = ""
     ) {
         $this->setTimestamp($timestamp);
         $this->setGridConfig($gridConfig);
@@ -174,7 +198,8 @@ class Export
         $this->setObjectsFolder($objectsFolder);
         $this->setAssetFolder($assetFolder);
         $this->setCondition($condition);
-        $this->setFilename($fileName);
+        $this->setTimestampFormat($timestampFormat);
+        $this->setFilename(\Pimcore\File::getValidFilename($fileName));
         $this->setContainer($container);
     }
 
@@ -242,6 +267,10 @@ class Export
 
         $objectsList = new \Pimcore\Model\DataObject\Listing();
         $objectsList->setCondition($this->condition);
+        $fullPath = $objectsFolder->getFullPath();
+        if ($fullPath == "/") {
+            $fullPath = "";
+        }
         $objectsList->addConditionParam("o_path LIKE ?", $objectsFolder->getFullPath() . '/%', "AND");
         $objectsList->addConditionParam("o_classId = ?", $this->gridConfig->classId, "AND");
 
