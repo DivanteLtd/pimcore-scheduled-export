@@ -9,7 +9,7 @@ jobs:
     - name: Checkout Repository
       uses: actions/checkout@v1
 
-    - name: phpcs
+    - name: PHP CodeSniffer
       run: |
         composer global require "divante-ltd/pimcore-coding-standards":"^0.1" \
           --no-interaction --prefer-dist --ignore-platform-reqs --quiet
@@ -18,3 +18,11 @@ jobs:
           --extensions=php \
           --standard=/home/runner/.composer/vendor/divante-ltd/pimcore-coding-standards/Standards/Pimcore5/ruleset.xml \
           ./src  -s
+
+    - name: PHP Mess Detector
+      run: |
+        composer global require "phpmd/phpmd":"^2.6" --no-interaction --prefer-dist --ignore-platform-reqs --quiet
+        composer global require "divante-ltd/pimcore-coding-standards":"^0.1" \
+          --no-interaction --prefer-dist --ignore-platform-reqs --quiet
+        /home/runner/.composer/vendor/bin/phpmd src text \
+          /home/runner/.composer/vendor/divante-ltd/pimcore-coding-standards/Standards/Pimcore5/rulesetmd.xml
