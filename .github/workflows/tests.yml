@@ -43,3 +43,8 @@ jobs:
           PIMCORE_TEST_DB_DSN: "mysql://root:root@localhost/pimcore_test"
         run: |
           ./scripts/install.sh
+
+      - name: Unit Tests
+        run: |
+          cd tmp
+          ./vendor/bin/phpunit --coverage-text
