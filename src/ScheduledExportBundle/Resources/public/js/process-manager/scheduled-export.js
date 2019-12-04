@@ -122,7 +122,7 @@ $(document).on("processmanager.ready", function() {
                     xtype: 'textfield',
                     fieldLabel: t('scheduledexport_timestamp'),
                     name: 'timestamp',
-                    value: this.data.settings.condition,
+                    value: this.data.settings.timestamp,
                     emptyText: t('scheduledexport_timestamp_example')
                 },
             ];

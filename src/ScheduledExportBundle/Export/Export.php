@@ -8,16 +8,16 @@
 namespace Divante\ScheduledExportBundle\Export;
 
 use AppBundle\Util\StringWebsiteSettings;
-use Pimcore\Logger;
-use Pimcore\Model\Asset;
-use Pimcore\Model\GridConfig;
-use Symfony\Component\HttpFoundation\Request;
 use Pimcore\Bundle\AdminBundle\Controller\Admin\DataObject\DataObjectHelperController;
 use Pimcore\Localization\LocaleService;
+use Pimcore\Logger;
+use Pimcore\Model\Asset;
 use Pimcore\Model\DataObject\Folder;
+use Pimcore\Model\GridConfig;
 use Pimcore\Tool;
-use Symfony\Component\HttpFoundation\Session\Attribute\AttributeBagInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Session\Attribute\AttributeBagInterface;
 
 /**
  * Class Export
@@ -47,6 +47,81 @@ class Export
     private $changesFromTimestamp;
 
     /**
+     * Export constructor.
+     * @param string $gridConfig
+     * @param string $objectsFolder
+     * @param string $assetFolder
+     * @param ContainerInterface $container
+     * @param string|null $condition
+     * @param string|null $fileName
+     * @param string $timestamp
+     * @param string $onlyChanges
+     * @throws \Exception
+     */
+    public function __construct(
+        string $gridConfig,
+        string $objectsFolder,
+        string $assetFolder,
+        $container,
+        string $condition = null,
+        string $fileName = null,
+        string $timestamp = "0",
+        string $onlyChanges = "0",
+        string $timestampFormat = ""
+    ) {
+        $this->setTimestamp($timestamp);
+        $this->setGridConfig($gridConfig);
+        $this->setOnlyChanges($onlyChanges);
+        $this->setObjectsFolder($objectsFolder);
+        $this->setAssetFolder($assetFolder);
+        $this->setCondition($condition);
+        $this->setTimestampFormat($timestampFormat);
+        $this->setFilename(\Pimcore\File::getValidFilename($fileName));
+        $this->setContainer($container);
+    }
+
+    /**
+     * @param bool $timestamp
+     * @return void
+     */
+    public function setTimestamp(bool $timestamp): void
+    {
+        if ($timestamp == "1") {
+            $this->timestamp = true;
+        } else {
+            $this->timestamp = false;
+        }
+    }
+
+    /**
+     * @param string $gridId
+     * @return void
+     * @throws \Exception
+     */
+    public function setGridConfig(string $gridId): void
+    {
+        $this->gridConfig = GridConfig::getById($gridId);
+    }
+
+    /**
+     * @param string $onlyChanges
+     * @return void
+     */
+    public function setOnlyChanges(string $onlyChanges): void
+    {
+        $settings = new StringWebsiteSettings($this->gridConfig->getId() . "_" . self::WS_NAME);
+        if ($onlyChanges === "1") {
+            $this->onlyChanges = true;
+            $this->changesFromTimestamp = strtotime($settings->getData());
+        } else {
+            $this->onlyChanges = false;
+            $this->changesFromTimestamp = 0;
+        }
+
+        $this->importStartTimestamp = time();
+    }
+
+    /**
      * @param string $objectsFolder
      * @return void
      */
@@ -71,75 +146,6 @@ class Export
     public function setCondition($condition): void
     {
         $this->condition = $condition;
-    }
-
-    /**
-     * @param bool $timestamp
-     * @return void
-     */
-    public function setTimestamp(bool $timestamp): void
-    {
-        if ($timestamp == "1") {
-            $this->timestamp = true;
-        } else {
-            $this->timestamp = false;
-        }
-    }
-
-    /**
-     * @return string
-     */
-    public function getTimestampFormat()
-    {
-        return $this->timestampFormat;
-    }
-
-    /**
-     * @param string $timestampFormat
-     * @return void
-     */
-    public function setTimestampFormat(string $timestampFormat): void
-    {
-        $this->timestampFormat = $timestampFormat;
-    }
-
-    /**
-     * @param string $onlyChanges
-     * @return void
-     */
-    public function setOnlyChanges(string $onlyChanges): void
-    {
-        $settings = new StringWebsiteSettings($this->gridConfig->getId() . "_" . self::WS_NAME);
-        if ($onlyChanges === "1") {
-            $this->onlyChanges = true;
-            $this->changesFromTimestamp = strtotime($settings->getData());
-        } else {
-            $this->onlyChanges = false;
-            $this->changesFromTimestamp = 0;
-        }
-
-        $this->importStartTimestamp = time();
-    }
-
-    /**
-     * @return void
-     */
-    private function updateSettingsDate(): void
-    {
-        if ($this->onlyChanges) {
-            $settings = new StringWebsiteSettings($this->gridConfig->getId() . "_" . self::WS_NAME);
-            $settings->setData(strftime("%Y-%m-%d %T", $this->importStartTimestamp));
-        }
-    }
-
-    /**
-     * @param string $gridId
-     * @return void
-     * @throws \Exception
-     */
-    public function setGridConfig(string $gridId): void
-    {
-        $this->gridConfig = GridConfig::getById($gridId);
     }
 
     /**
@@ -171,44 +177,25 @@ class Export
     }
 
     /**
-     * Export constructor.
-     * @param string $gridConfig
-     * @param string $objectsFolder
-     * @param string $assetFolder
-     * @param ContainerInterface $container
-     * @param string|null $condition
-     * @param string|null $fileName
-     * @param string $timestamp
-     * @param string $onlyChanges
-     * @param string $timestampFormat
-     * @throws \Exception
+     * @return string
      */
-    public function __construct(
-        string $gridConfig,
-        string $objectsFolder,
-        string $assetFolder,
-        $container,
-        string $condition = null,
-        string $fileName = null,
-        string $timestamp = "0",
-        string $onlyChanges = "0",
-        string $timestampFormat = ""
-    ) {
-        $this->setTimestamp($timestamp);
-        $this->setGridConfig($gridConfig);
-        $this->setOnlyChanges($onlyChanges);
-        $this->setObjectsFolder($objectsFolder);
-        $this->setAssetFolder($assetFolder);
-        $this->setCondition($condition);
-        $this->setTimestampFormat($timestampFormat);
-        $this->setFilename(\Pimcore\File::getValidFilename($fileName));
-        $this->setContainer($container);
+    public function getTimestampFormat(): string
+    {
+        return $this->timestampFormat;
+    }
+
+    /**
+     * @param mixed $timestampFormat
+     */
+    public function setTimestampFormat(string $timestampFormat): void
+    {
+        $this->timestampFormat = $timestampFormat;
     }
 
     /**
      * @return void
      */
-    public function export()
+    public function export(): void
     {
         $request = $this->prepareRequest();
 
@@ -246,6 +233,29 @@ class Export
     /**
      * @return array
      */
+    protected function prepareObjectIds(): array
+    {
+        $objectsFolder = Folder::getByPath($this->objectsFolder);
+
+        $objectsList = new \Pimcore\Model\DataObject\Listing();
+        $objectsList->setCondition($this->condition);
+        $objectsList->addConditionParam(
+            "o_path LIKE ?",
+            rtrim($objectsFolder->getFullPath(), "/") . '/%',
+            "AND"
+        );
+        $objectsList->addConditionParam("o_classId = ?", $this->gridConfig->classId, "AND");
+
+        if ($this->changesFromTimestamp) {
+            $objectsList->addConditionParam("o_modificationDate >= ?", $this->changesFromTimestamp, "AND");
+        }
+        $objectsList->setUnpublished(true);
+        return $objectsList->loadIdList();
+    }
+
+    /**
+     * @return array
+     */
     protected function prepareFields(): array
     {
         /** @var GridConfig $fieldsRaw */
@@ -258,29 +268,6 @@ class Export
             $fields[] = $item->name;
         }
         return $fields;
-    }
-
-    /**
-     * @return array
-     */
-    protected function prepareObjectIds(): array
-    {
-        $objectsFolder = Folder::getByPath($this->objectsFolder);
-
-        $objectsList = new \Pimcore\Model\DataObject\Listing();
-        $objectsList->setCondition($this->condition);
-        $fullPath = $objectsFolder->getFullPath();
-        if ($fullPath == "/") {
-            $fullPath = "";
-        }
-        $objectsList->addConditionParam("o_path LIKE ?", $objectsFolder->getFullPath() . '/%', "AND");
-        $objectsList->addConditionParam("o_classId = ?", $this->gridConfig->classId, "AND");
-
-        if ($this->changesFromTimestamp) {
-            $objectsList->addConditionParam("o_modificationDate >= ?", $this->changesFromTimestamp, "AND");
-        }
-        $objectsList->setUnpublished(true);
-        return $objectsList->loadIdList();
     }
 
     /**
@@ -340,5 +327,16 @@ class Export
         $assetFile->setFilename($this->fileName . ".csv");
 
         return $assetFile;
+    }
+
+    /**
+     *
+     */
+    private function updateSettingsDate(): void
+    {
+        if ($this->onlyChanges) {
+            $settings = new StringWebsiteSettings($this->gridConfig->getId() . "_" . self::WS_NAME);
+            $settings->setData(strftime("%Y-%m-%d %T", $this->importStartTimestamp));
+        }
     }
 }
