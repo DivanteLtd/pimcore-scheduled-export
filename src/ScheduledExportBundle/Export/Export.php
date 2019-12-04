@@ -68,8 +68,7 @@ class Export
         string $timestamp = "0",
         string $onlyChanges = "0",
         string $timestampFormat = ""
-    )
-    {
+    ) {
         $this->setTimestamp($timestamp);
         $this->setGridConfig($gridConfig);
         $this->setOnlyChanges($onlyChanges);
@@ -242,7 +241,8 @@ class Export
         $objectsList->setCondition($this->condition);
         $objectsList->addConditionParam(
             "o_path LIKE ?",
-            rtrim($objectsFolder->getFullPath(), "/") . '/%', "AND"
+            rtrim($objectsFolder->getFullPath(), "/") . '/%',
+            "AND"
         );
         $objectsList->addConditionParam("o_classId = ?", $this->gridConfig->classId, "AND");
 
