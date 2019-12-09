@@ -8,6 +8,7 @@
 namespace Divante\ScheduledExportBundle\Export;
 
 use AppBundle\Util\StringWebsiteSettings;
+use Divante\ScheduledExportBundle\Util\TextUtil;
 use Pimcore\Bundle\AdminBundle\Controller\Admin\DataObject\DataObjectHelperController;
 use Pimcore\Localization\LocaleService;
 use Pimcore\Logger;
@@ -136,7 +137,7 @@ class Export
      */
     public function setAssetFolder($assetFolder): void
     {
-        $this->assetFolder = $assetFolder;
+        $this->assetFolder = (new TextUtil())->cleanText($assetFolder);
     }
 
     /**
