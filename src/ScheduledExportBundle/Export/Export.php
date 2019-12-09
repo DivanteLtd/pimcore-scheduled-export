@@ -57,6 +57,7 @@ class Export
      * @param string|null $fileName
      * @param string $timestamp
      * @param string $onlyChanges
+     * @param string $timestampFormat
      * @throws \Exception
      */
     public function __construct(
@@ -186,7 +187,8 @@ class Export
     }
 
     /**
-     * @param mixed $timestampFormat
+     * @param string $timestampFormat
+     * @return void
      */
     public function setTimestampFormat(string $timestampFormat): void
     {
@@ -331,7 +333,7 @@ class Export
     }
 
     /**
-     *
+     * @return void
      */
     private function updateSettingsDate(): void
     {
