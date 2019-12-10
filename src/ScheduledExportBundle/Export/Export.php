@@ -335,7 +335,11 @@ class Export
     private function updateSettingsDate(): void
     {
         if ($this->onlyChanges) {
-            $settings = new StringWebsiteSettings($this->gridConfig->getId() . "_" . self::WS_NAME);
+            $settings = new StringWebsiteSettings(
+                $this->gridConfig->getId() .
+                "_" . Folder::getByPath($this->objectsFolder)->getId() .
+                "_" . self::WS_NAME
+            );
             $settings->setData(strftime("%Y-%m-%d %T", $this->importStartTimestamp));
         }
     }
