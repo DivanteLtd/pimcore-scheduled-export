@@ -8,7 +8,6 @@
 namespace Divante\ScheduledExportBundle\Export;
 
 use AppBundle\Util\StringWebsiteSettings;
-use Divante\ScheduledExportBundle\Util\TextUtil;
 use Pimcore\Bundle\AdminBundle\Controller\Admin\DataObject\DataObjectHelperController;
 use Pimcore\Localization\LocaleService;
 use Pimcore\Logger;
@@ -57,7 +56,6 @@ class Export
      * @param string|null $fileName
      * @param string $timestamp
      * @param string $onlyChanges
-     * @param string $timestampFormat
      * @throws \Exception
      */
     public function __construct(
@@ -138,7 +136,7 @@ class Export
      */
     public function setAssetFolder($assetFolder): void
     {
-        $this->assetFolder = (new TextUtil())->cleanText($assetFolder);
+        $this->assetFolder = $assetFolder;
     }
 
     /**
@@ -187,8 +185,7 @@ class Export
     }
 
     /**
-     * @param string $timestampFormat
-     * @return void
+     * @param mixed $timestampFormat
      */
     public function setTimestampFormat(string $timestampFormat): void
     {
@@ -333,7 +330,7 @@ class Export
     }
 
     /**
-     * @return void
+     *
      */
     private function updateSettingsDate(): void
     {
