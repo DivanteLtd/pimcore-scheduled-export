@@ -33,10 +33,16 @@ class TextUtilTest extends TestCase
      */
     public function testCanCleanText()
     {
-        $text = "a\" b* c/ d: e( f- g? h\ i'";
+        $text = "a\" b* c- d: e( f- g? h\ i'";
         $actual = $this->textUtil->cleanText($text);
         $expected = "a-b-c-d-e-f-g-h-i";
 
         $this->assertEquals($expected, $actual);
+
+        $text = "/some/directory/maybe with spaces/";
+        $actual = $this->textUtil->cleanText($text);
+        $expected = "/some/directory/maybe with spaces";
+
+        $this->assertEquals($actual, $expected);
     }
 }
