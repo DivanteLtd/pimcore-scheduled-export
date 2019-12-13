@@ -14,6 +14,7 @@ use Pimcore\Logger;
 use Pimcore\Model\Asset;
 use Pimcore\Model\DataObject\Folder;
 use Pimcore\Model\GridConfig;
+use Pimcore\Model\WebsiteSetting;
 use Pimcore\Tool;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -71,13 +72,24 @@ class Export
     ) {
         $this->setTimestamp($timestamp);
         $this->setGridConfig($gridConfig);
-        $this->setOnlyChanges($onlyChanges);
         $this->setObjectsFolder($objectsFolder);
+        $this->setOnlyChanges($onlyChanges);
         $this->setAssetFolder($assetFolder);
         $this->setCondition($condition);
         $this->setTimestampFormat($timestampFormat);
         $this->setFilename(\Pimcore\File::getValidFilename($fileName));
         $this->setContainer($container);
+    }
+
+    public function getExportSetting() : StringWebsiteSettings
+    {
+        $settings = new StringWebsiteSettings(
+            $this->gridConfig->getId() .
+            "_" . Folder::getByPath($this->objectsFolder)->getId() .
+            "_" . self::WS_NAME
+        );
+
+        return $settings;
     }
 
     /**
@@ -109,7 +121,7 @@ class Export
      */
     public function setOnlyChanges(string $onlyChanges): void
     {
-        $settings = new StringWebsiteSettings($this->gridConfig->getId() . "_" . self::WS_NAME);
+        $settings = $this->getExportSetting();
         if ($onlyChanges === "1") {
             $this->onlyChanges = true;
             $this->changesFromTimestamp = strtotime($settings->getData());
@@ -335,11 +347,7 @@ class Export
     private function updateSettingsDate(): void
     {
         if ($this->onlyChanges) {
-            $settings = new StringWebsiteSettings(
-                $this->gridConfig->getId() .
-                "_" . Folder::getByPath($this->objectsFolder)->getId() .
-                "_" . self::WS_NAME
-            );
+            $settings = $this->getExportSetting();
             $settings->setData(strftime("%Y-%m-%d %T", $this->importStartTimestamp));
         }
     }
