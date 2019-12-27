@@ -34,8 +34,7 @@ cp -r scripts/config_test.yml $PROJECT_DIR/app/config/config_test.yml
 cd $PROJECT_DIR
 
 echo -e "\e[32m=> Install dependencies \e[0m"
-COMPOSER_DISCARD_CHANGES=true COMPOSER_MEMORY_LIMIT=-1 composer install \
-    --no-interaction --optimize-autoloader --ignore-platform-reqs
+COMPOSER_DISCARD_CHANGES=true COMPOSER_MEMORY_LIMIT=-1 composer install --no-interaction --optimize-autoloader
 
 MYSQL_COMMAND="mysql"
 INSTALL_COMMAND="vendor/bin/pimcore-install --ignore-existing-config --admin-username admin --admin-password admin"
