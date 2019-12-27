@@ -53,10 +53,11 @@ class Export
      * @param string $objectsFolder
      * @param string $assetFolder
      * @param ContainerInterface $container
-     * @param string|null $condition
-     * @param string|null $fileName
+     * @param string $condition
+     * @param string $fileName
      * @param string $timestamp
      * @param string $onlyChanges
+     * @param string $timestampFormat
      * @throws \Exception
      */
     public function __construct(
@@ -81,6 +82,9 @@ class Export
         $this->setContainer($container);
     }
 
+    /**
+     * @return StringWebsiteSettings
+     */
     public function getExportSetting() : StringWebsiteSettings
     {
         $settings = new StringWebsiteSettings(
@@ -197,7 +201,8 @@ class Export
     }
 
     /**
-     * @param mixed $timestampFormat
+     * @param string $timestampFormat
+     * @return void
      */
     public function setTimestampFormat(string $timestampFormat): void
     {
@@ -342,7 +347,7 @@ class Export
     }
 
     /**
-     *
+     * @return void
      */
     private function updateSettingsDate(): void
     {
