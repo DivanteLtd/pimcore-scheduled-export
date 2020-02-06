@@ -10,6 +10,7 @@ namespace Divante\ScheduledExportBundle\Command;
 use Divante\ScheduledExportBundle\Export\Export;
 use Pimcore\Console\AbstractCommand;
 use Pimcore\Model\DataObject\AbstractObject;
+use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -20,10 +21,8 @@ use Symfony\Component\DependencyInjection\ContainerAwareTrait;
  *
  * @package Divante\ScheduledExportBundle\Command
  */
-class ScheduledExportCommand extends AbstractCommand
+class ScheduledExportCommand extends ContainerAwareCommand
 {
-    use ContainerAwareTrait;
-
     /**
      * {@inheritdoc}
      */

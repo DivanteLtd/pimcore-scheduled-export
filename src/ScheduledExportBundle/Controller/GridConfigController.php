@@ -30,12 +30,13 @@ class GridConfigController extends AdminController
         $result = [];
 
         /** @var GridConfig $gridConfig */
-        foreach ($gridConfigs->gridConfigs as $gridConfig) {
+        foreach ($gridConfigs->getGridConfigs() as $gridConfig) {
             $classDefinition = ClassDefinition::getById($gridConfig->getClassId());
             $user = \Pimcore\Model\User::getById($gridConfig->getOwnerId());
             $result[] = [
                 "id"    => $gridConfig->getId(),
-                "name"  => $classDefinition->getName() . ":" . $gridConfig->getName() . " (" . $user->getName() . ")"
+                "name"  => "[" . $gridConfig->getId() . "] " . $classDefinition->getName() . ": " .
+                    $gridConfig->getName() . " (" . $user->getName() . ")"
             ];
         }
 

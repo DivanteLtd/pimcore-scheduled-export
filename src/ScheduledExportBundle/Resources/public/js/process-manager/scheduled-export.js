@@ -4,7 +4,7 @@
  * @copyright Copyright (c) 2017 Divante Ltd. (https://divante.co)
  */
 
-$(document).on("processmanager.ready", function() {
+document.addEventListener('processmanager.ready', function() {
     processmanager.executable.types.scheduledexport = Class.create(pimcore.plugin.processmanager.executable.abstractType, {
         getItems: function () {
             var storedThis = this;
