@@ -8,14 +8,14 @@
 
 Scheduled Export lets you run ordinary grid exports in background.
 
-![Scheduled Export](docs/example.jpeg?raw=true "Scheduled Export")
+![Scheduled Export](docs/example.png?raw=true "Scheduled Export")
 
 **Table of Contents**
 - [Scheduled Export](#scheduled-export)
 	- [Compatibility](#compatibility)
 	- [Installing/Getting started](#installinggetting-started)
 	- [Requirements](#requirements)
-	- [Configuration](#configuration)
+	- [Usage](#Usage)
 	- [Testing](#testing)
 	- [Contributing](#contributing)
 	- [Licence](#licence)
@@ -26,10 +26,17 @@ Scheduled Export lets you run ordinary grid exports in background.
 
 This module is compatible with Pimcore 5.5.0 and higher.
 
-## Installing/Getting startedr
+## Installing
 
 ```bash
 composer require divante-ltd/pimcore-scheduled-export
+```
+
+Make sure the dependencies are enabled and installed:
+```bash
+./bin/console pimcore:bundle:enable PimcoreDevkitBundle
+./bin/console pimcore:bundle:enable ProcessManagerBundle
+./bin/console pimcore:bundle:install ProcessManagerBundle
 ```
 
 Enable the Bundle:
@@ -37,9 +44,26 @@ Enable the Bundle:
 ./bin/console pimcore:bundle:enable DivanteScheduledExportBundle
 ```
 
-## Configuration
+## Requirements
 
-In Pimcore panel select Extensions click Install and Enable.
+* Pimcore 5 or 6
+* Pimcore Devkit
+* ProcessManager
+
+## Usage
+Prepare a gridconfig that you want to export, open up ProcessManager, create a new Scheduled Export Executable.
+In the configuration window, select the folder you want to export, gridconfig and where the exported file should be saved.
+
+Adjust other settings at your will.
+
+Configure the schedule using ProcessManager's cron settings or run the export manually.
+Keep in mind, that currently there is no progress display support, so export will not be visible in Processes tab of the ProcessManager.
+
+You can also run the export from the cli if desired:
+
+```bash
+dsfaf
+```   
 
 ## Testing
 Unit Tests:

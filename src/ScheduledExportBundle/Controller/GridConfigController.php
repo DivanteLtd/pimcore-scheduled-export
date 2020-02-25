@@ -25,18 +25,26 @@ class GridConfigController extends AdminController
      */
     public function getListAction(Request $request)
     {
+        $user = $this->getAdminUser();
         $gridConfigs = new GridConfig\Listing();
+        $gridConfigs->setCondition("ownerId = ? or shareGlobally = 1", [$user->getId()]);
         $gridConfigs->load();
         $result = [];
+
 
         /** @var GridConfig $gridConfig */
         foreach ($gridConfigs->getGridConfigs() as $gridConfig) {
             $classDefinition = ClassDefinition::getById($gridConfig->getClassId());
             $user = \Pimcore\Model\User::getById($gridConfig->getOwnerId());
+            if ($user) {
+                $userName = $user->getName();
+            } else {
+                $userName = "unknown";
+            }
             $result[] = [
                 "id"    => $gridConfig->getId(),
                 "name"  => "[" . $gridConfig->getId() . "] " . $classDefinition->getName() . ": " .
-                    $gridConfig->getName() . " (" . $user->getName() . ")"
+                    $gridConfig->getName() . " (" . $userName . ")"
             ];
         }
 
