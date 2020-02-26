@@ -3,6 +3,7 @@
 namespace Divante\ScheduledExportBundle\Controller;
 
 use Pimcore\Bundle\AdminBundle\Controller\AdminController;
+use Pimcore\Bundle\AdminBundle\HttpFoundation\JsonResponse;
 use Pimcore\Bundle\AdminBundle\Security\User\User;
 use Pimcore\Model\DataObject\ClassDefinition;
 use Pimcore\Model\GridConfig;
@@ -16,6 +17,9 @@ use Symfony\Component\Routing\Annotation\Route;
  */
 class GridConfigController extends AdminController
 {
+    /** @var string True indicator for share globally */
+    const SHARE_GLOBALLY_TRUE = "1";
+
     /**
      * @param Request $request
      * @return \Pimcore\Bundle\AdminBundle\HttpFoundation\JsonResponse
@@ -23,11 +27,11 @@ class GridConfigController extends AdminController
      *
      * @Route("/admin/scheduled-export/grid-config/get-list")
      */
-    public function getListAction(Request $request)
+    public function getListAction(Request $request) : JsonResponse
     {
         $user = $this->getAdminUser();
         $gridConfigs = new GridConfig\Listing();
-        $gridConfigs->setCondition("ownerId = ? or shareGlobally = 1", [$user->getId()]);
+        $gridConfigs->setCondition("ownerId = ? or shareGlobally = ?", [$user->getId(), self::SHARE_GLOBALLY_TRUE]);
         $gridConfigs->load();
         $result = [];
 
