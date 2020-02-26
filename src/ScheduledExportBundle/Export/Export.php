@@ -7,7 +7,6 @@
 
 namespace Divante\ScheduledExportBundle\Export;
 
-use AppBundle\Util\StringWebsiteSettings;
 use Pimcore\Bundle\AdminBundle\Controller\Admin\DataObject\DataObjectHelperController;
 use Pimcore\Localization\LocaleService;
 use Pimcore\Logger;
@@ -81,13 +80,18 @@ class Export
         $this->setContainer($container);
     }
 
-    public function getExportSetting() : StringWebsiteSettings
+    public function getExportSetting() : WebsiteSetting
     {
-        $settings = new StringWebsiteSettings(
-            $this->gridConfig->getId() .
+        $settings = WebsiteSetting::getByName($this->gridConfig->getId() .
             "_" . Folder::getByPath($this->objectsFolder)->getId() .
-            "_" . self::WS_NAME
-        );
+            "_" . self::WS_NAME);
+        if (!$settings) {
+            $settings = new WebsiteSetting();
+            $settings->setName($this->gridConfig->getId() .
+                "_" . Folder::getByPath($this->objectsFolder)->getId() .
+                "_" . self::WS_NAME);
+            $settings->save();
+        }
 
         return $settings;
     }
@@ -349,6 +353,7 @@ class Export
         if ($this->onlyChanges) {
             $settings = $this->getExportSetting();
             $settings->setData(strftime("%Y-%m-%d %T", $this->importStartTimestamp));
+            $settings->save();
         }
     }
 }
