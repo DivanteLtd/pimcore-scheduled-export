@@ -11,6 +11,7 @@ use Pimcore\Bundle\AdminBundle\Controller\Admin\DataObject\DataObjectHelperContr
 use Pimcore\Localization\LocaleService;
 use Pimcore\Logger;
 use Pimcore\Model\Asset;
+use Pimcore\Model\DataObject\ClassDefinition;
 use Pimcore\Model\DataObject\Folder;
 use Pimcore\Model\GridConfig;
 use Pimcore\Model\WebsiteSetting;
@@ -252,8 +253,10 @@ class Export
     protected function prepareObjectIds(): array
     {
         $objectsFolder = Folder::getByPath($this->objectsFolder);
-
-        $objectsList = new \Pimcore\Model\DataObject\Listing();
+        $className = "\\Pimcore\\Model\\DataObject\\"
+            . ucfirst(ClassDefinition::getById($this->gridConfig->classId)->getName())
+            . "\\Listing";
+        $objectsList = new $className();
         $objectsList->setCondition($this->condition);
         $objectsList->addConditionParam(
             "o_path LIKE ?",
