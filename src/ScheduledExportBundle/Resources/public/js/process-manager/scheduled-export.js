@@ -104,6 +104,12 @@ document.addEventListener('processmanager.ready', function() {
                     emptyText: t('scheduledexport_asset_filename_example')
                 }, {
                     xtype: 'textfield',
+                    fieldLabel: t('scheduledexport_delimiter'),
+                    name: 'delimiter',
+                    value: this.data.settings.delimiter,
+                    emptyText: t('scheduledexport_delimiter_example')
+                }, {
+                    xtype: 'textfield',
                     fieldLabel: t('scheduledexport_condition'),
                     name: 'condition',
                     value: this.data.settings.condition,

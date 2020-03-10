@@ -27,7 +27,7 @@ use Symfony\Component\HttpFoundation\Session\Attribute\AttributeBagInterface;
  */
 class Export
 {
-    const SETTINGS = '{"enableInheritance":true,"delimiter":";"}';
+    const SETTINGS = '{"enableInheritance":true,"delimiter":"%delimiter%"}';
 
     const WS_NAME = 'Last_Scheduled_Export_Date';
 
@@ -40,6 +40,7 @@ class Export
     private $timestampFormat;
     private $importStartTimestamp;
     private $container;
+    private $delimiter;
 
     /** @var bool $onlyChanges */
     private $onlyChanges;
@@ -68,7 +69,8 @@ class Export
         string $fileName = null,
         string $timestamp = "0",
         string $onlyChanges = "0",
-        string $timestampFormat = ""
+        string $timestampFormat = "",
+        string $delimiter = null
     ) {
         $this->setTimestamp($timestamp);
         $this->setGridConfig($gridConfig);
@@ -79,6 +81,7 @@ class Export
         $this->setTimestampFormat($timestampFormat);
         $this->setFilename(\Pimcore\File::getValidFilename($fileName));
         $this->setContainer($container);
+        $this->setDelimiter($delimiter);
     }
 
     public function getExportSetting() : WebsiteSetting
@@ -154,6 +157,18 @@ class Export
     public function setAssetFolder($assetFolder): void
     {
         $this->assetFolder = $assetFolder;
+    }
+
+    /**
+     * @param string|null $delimiter
+     * @return void
+     */
+    public function setDelimiter($delimiter): void
+    {
+        if (!$delimiter) {
+            $delimiter = ";";
+        }
+        $this->delimiter = $delimiter;
     }
 
     /**
@@ -238,7 +253,7 @@ class Export
 
         $request->request->set('fileHandle', $this->fileName);
         $request->request->set('ids', $this->prepareObjectIds());
-        $request->request->set('settings', self::SETTINGS);
+        $request->request->set('settings', str_replace("%delimiter%", $this->delimiter, self::SETTINGS));
         $request->request->set('classId', $this->gridConfig->classId);
         $request->request->set('initial', '1');
         $request->request->set('fields', $this->prepareFields());

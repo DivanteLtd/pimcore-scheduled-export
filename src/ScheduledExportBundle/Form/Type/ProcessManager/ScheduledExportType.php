@@ -30,6 +30,7 @@ class ScheduledExportType extends AbstractType
             ->add('asset_folder', TextType::class)
             ->add('asset_filename', TextType::class)
             ->add('condition', TextType::class)
+            ->add('delimiter', TextType::class)
             ->add('add_timestamp', CheckboxType::class)
             ->add('timestamp', TextType::class)
             ->add('only_changes', CheckboxType::class);

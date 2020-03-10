@@ -82,7 +82,14 @@ EOT
                 '',
                 InputOption::VALUE_OPTIONAL,
                 'Export only changes from last export'
-            );
+            )
+            ->addOption(
+                'delimiter',
+                '',
+                InputOption::VALUE_OPTIONAL,
+                'Set your own delimiter'
+            )
+            ;
     }
 
     /**
@@ -103,7 +110,8 @@ EOT
             (string) $input->getOption("filename"),
             (string) $input->getOption("timestamp"),
             (string) $input->getOption("only-changes"),
-            (string) $input->getOption("format")
+            (string) $input->getOption("format"),
+            (string) $input->getOption("delimiter")
         );
 
         $export->export();
