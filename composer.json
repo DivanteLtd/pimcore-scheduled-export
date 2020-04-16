@@ -36,8 +36,8 @@
     }
   ],
   "require": {
-    "pimcore/pimcore": "^6.3",
-    "divanteltd/pimcoredevkit": "^0.10",
+    "pimcore/pimcore": ">=6.3",
+    "divanteltd/pimcoredevkit": "0.*",
     "dpfaffenbauer/process-manager": "^2.0"
   },
   "require-dev": {
