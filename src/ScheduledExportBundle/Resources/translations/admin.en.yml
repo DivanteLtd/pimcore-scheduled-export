@@ -14,3 +14,5 @@ scheduledexport_timestamp: "Timestamp format (<a href='https://www.php.net/manua
 scheduledexport_timestamp_example: "-%s"
 scheduledexport_delimiter_example: ";"
 scheduledexport_delimiter: "Delimiter"
+scheduledexport_types: "Types (comma separated)"
+scheduledexport_types_example: "object,variant,folder"

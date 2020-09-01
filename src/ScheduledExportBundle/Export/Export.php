@@ -41,6 +41,7 @@ class Export
     private $importStartTimestamp;
     private $container;
     private $delimiter;
+    private $types;
 
     /** @var bool $onlyChanges */
     private $onlyChanges;
@@ -70,7 +71,8 @@ class Export
         string $timestamp = "0",
         string $onlyChanges = "0",
         string $timestampFormat = "",
-        string $delimiter = null
+        string $delimiter = null,
+        string $types = ''
     ) {
         $this->setTimestamp($timestamp);
         $this->setGridConfig($gridConfig);
@@ -82,6 +84,7 @@ class Export
         $this->setFilename(\Pimcore\File::getValidFilename($fileName));
         $this->setContainer($container);
         $this->setDelimiter($delimiter);
+        $this->types = str_replace(' ', '', $types);
     }
 
     public function getExportSetting() : WebsiteSetting
@@ -283,6 +286,11 @@ class Export
         if ($this->changesFromTimestamp) {
             $objectsList->addConditionParam("o_modificationDate >= ?", $this->changesFromTimestamp, "AND");
         }
+
+        if ($this->types) {
+            $objectsList->setObjectTypes(explode(',', $this->types));
+        }
+
         $objectsList->setUnpublished(true);
         return $objectsList->loadIdList();
     }

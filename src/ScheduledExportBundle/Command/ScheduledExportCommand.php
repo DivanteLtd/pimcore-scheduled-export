@@ -89,7 +89,13 @@ EOT
                 InputOption::VALUE_OPTIONAL,
                 'Set your own delimiter'
             )
-            ;
+            ->addOption(
+                'types',
+                '',
+                InputOption::VALUE_OPTIONAL,
+                'Set what types should be exported; e. g. "object,variant"; defaults to default list settings'
+            )
+        ;
     }
 
     /**
@@ -111,7 +117,8 @@ EOT
             (string) $input->getOption("timestamp"),
             (string) $input->getOption("only-changes"),
             (string) $input->getOption("format"),
-            (string) $input->getOption("delimiter")
+            (string) $input->getOption("delimiter"),
+            (string) $input->getOption("types")
         );
 
         $export->export();
