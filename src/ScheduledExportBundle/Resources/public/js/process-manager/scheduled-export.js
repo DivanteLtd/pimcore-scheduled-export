@@ -130,6 +130,12 @@ document.addEventListener('processmanager.ready', function() {
                     name: 'timestamp',
                     value: this.data.settings.timestamp,
                     emptyText: t('scheduledexport_timestamp_example')
+                }, {
+                    xtype: 'textfield',
+                    fieldLabel: t('scheduledexport_types'),
+                    name: 'types',
+                    value: this.data.settings.types,
+                    emptyText: t('scheduledexport_types_example')
                 },
             ];
         },

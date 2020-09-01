@@ -33,7 +33,9 @@ class ScheduledExportType extends AbstractType
             ->add('delimiter', TextType::class)
             ->add('add_timestamp', CheckboxType::class)
             ->add('timestamp', TextType::class)
-            ->add('only_changes', CheckboxType::class);
+            ->add('only_changes', CheckboxType::class)
+            ->add('types', TextType::class)
+        ;
     }
 
     /**
