@@ -35,7 +35,9 @@ class ScheduledExportType extends AbstractType
             ->add('timestamp', TextType::class)
             ->add('only_changes', CheckboxType::class)
             ->add('divide_file', TextType::class)
-            ->add('preserve_process', CheckboxType::class);
+            ->add('preserve_process', CheckboxType::class)
+            ->add('types', TextType::class)
+        ;
     }
 
     /**

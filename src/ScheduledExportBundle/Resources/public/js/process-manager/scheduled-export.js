@@ -157,6 +157,13 @@ document.addEventListener('processmanager.ready', function() {
                             name: 'preserve_process',
                             value: this.data.settings.preserve_process,
                         },
+                        {
+                            xtype: 'textfield',
+                            fieldLabel: t('scheduledexport_types'),
+                            name: 'types',
+                            value: this.data.settings.types,
+                            emptyText: t('scheduledexport_types_example'),
+                        },
                     ]
                 }
                 ,

@@ -49,6 +49,7 @@ class Export
     private $importStartTimestamp;
     private $container;
     private $delimiter;
+    private $types;
 
     /** @var Input $input */
     private $input;
@@ -102,6 +103,7 @@ class Export
         $this->process->setStarted(time());
         $this->process->setStoppable(true);
         $this->processRepository = $this->container->get('process_manager.repository.process');
+        $this->types = str_replace(' ', '', (string) $input->getOption("types"));
     }
 
     public function getExportSetting() : WebsiteSetting
@@ -343,6 +345,9 @@ class Export
             $this->listing->addConditionParam("o_modificationDate >= ?", $this->changesFromTimestamp, "AND");
         }
         $this->listing->setUnpublished(true);
+        if ($this->types) {
+            $this->listing->setObjectTypes(explode(',', $this->types));
+        }
         $this->process->setMessage("Counting objects to export");
         $this->process->save();
         $this->process->setTotal($this->listing->getCount());

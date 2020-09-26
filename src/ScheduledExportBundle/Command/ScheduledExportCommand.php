@@ -100,8 +100,13 @@ EOT
                 '',
                 InputOption::VALUE_OPTIONAL,
                 'Don\'t delete process'
+            )->addOption(
+                'types',
+                '',
+                InputOption::VALUE_OPTIONAL,
+                'Set what types should be exported; e. g. "object,variant"; defaults to default list settings'
             )
-            ;
+        ;
     }
 
     /**
