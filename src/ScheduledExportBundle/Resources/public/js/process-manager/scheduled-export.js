@@ -48,7 +48,8 @@ document.addEventListener('processmanager.ready', function() {
                         'change': function (el) {
                             console.log(el);
                         }
-                    }
+                    },
+                    allowBlank: false
                 }, {
                     xtype: 'combo',
                     fieldLabel: t('scheduledexport_grid_config'),
@@ -95,7 +96,8 @@ document.addEventListener('processmanager.ready', function() {
                                 }.bind(el)
                             });
                         }
-                    }
+                    },
+                    allowBlank: false
                 }, {
                     xtype: 'textfield',
                     fieldLabel: t('scheduledexport_asset_filename'),
@@ -103,34 +105,61 @@ document.addEventListener('processmanager.ready', function() {
                     value: this.data.settings.asset_filename,
                     emptyText: t('scheduledexport_asset_filename_example')
                 }, {
-                    xtype: 'textfield',
-                    fieldLabel: t('scheduledexport_delimiter'),
-                    name: 'delimiter',
-                    value: this.data.settings.delimiter,
-                    emptyText: t('scheduledexport_delimiter_example')
-                }, {
-                    xtype: 'textfield',
-                    fieldLabel: t('scheduledexport_condition'),
-                    name: 'condition',
-                    value: this.data.settings.condition,
-                    emptyText: t('scheduledexport_condition_example')
-                }, {
                     xtype: 'checkbox',
                     fieldLabel: t('scheduledexport_only_changes'),
                     name: 'only_changes',
                     value: this.data.settings.only_changes,
-                }, {
+                },
+                {
                     xtype: 'checkbox',
                     fieldLabel: t('scheduledexport_add_timestamp'),
                     name: 'add_timestamp',
                     value: this.data.settings.add_timestamp,
-                }, {
-                    xtype: 'textfield',
-                    fieldLabel: t('scheduledexport_timestamp'),
-                    name: 'timestamp',
-                    value: this.data.settings.timestamp,
-                    emptyText: t('scheduledexport_timestamp_example')
                 },
+                {
+                    xtype: "form",
+                    bodyStyle: "padding: 10px; border: 1px;",
+                    style: "margin: 10px 0 10px 0",
+                    collapsible: true,
+                    collapsed: true,
+                    title: t('scheduledexport_advanced_settings'),
+                    items: [
+                        {
+                            xtype: 'textfield',
+                            fieldLabel: t('scheduledexport_delimiter'),
+                            name: 'delimiter',
+                            value: this.data.settings.delimiter,
+                            emptyText: t('scheduledexport_delimiter_example')
+                        }, {
+                            xtype: 'textfield',
+                            fieldLabel: t('scheduledexport_condition'),
+                            name: 'condition',
+                            value: this.data.settings.condition,
+                            emptyText: t('scheduledexport_condition_example')
+                        },
+                        {
+                            xtype: 'textfield',
+                            fieldLabel: t('scheduledexport_timestamp'),
+                            name: 'timestamp',
+                            value: this.data.settings.timestamp,
+                            emptyText: t('scheduledexport_timestamp_example')
+                        },
+                        {
+                            xtype: 'textfield',
+                            fieldLabel: t('scheduledexport_divide_file'),
+                            name: 'divide_file',
+                            value: this.data.settings.divide_file,
+                            emptyText: '1000'
+                        },
+                        {
+                            xtype: 'checkbox',
+                            fieldLabel: t('scheduledexport_preserve_process'),
+                            name: 'preserve_process',
+                            value: this.data.settings.preserve_process,
+                        },
+                    ]
+                }
+                ,
             ];
         },
 

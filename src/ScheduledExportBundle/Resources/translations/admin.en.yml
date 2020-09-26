@@ -14,3 +14,6 @@ scheduledexport_timestamp: "Timestamp format (<a href='https://www.php.net/manua
 scheduledexport_timestamp_example: "-%s"
 scheduledexport_delimiter_example: ";"
 scheduledexport_delimiter: "Delimiter"
+scheduledexport_advanced_settings: "Advanced settings"
+scheduledexport_divide_file: "Divide file if larger than n lines"
+scheduledexport_preserve_process: "Don't delete process after it's finished"

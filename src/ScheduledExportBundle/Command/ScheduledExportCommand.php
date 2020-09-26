@@ -89,6 +89,18 @@ EOT
                 InputOption::VALUE_OPTIONAL,
                 'Set your own delimiter'
             )
+            ->addOption(
+                'divide_file',
+                '',
+                InputOption::VALUE_OPTIONAL,
+                'Divide file into parts with n lines'
+            )
+            ->addOption(
+                'preserve_process',
+                '',
+                InputOption::VALUE_OPTIONAL,
+                'Don\'t delete process'
+            )
             ;
     }
 
@@ -102,16 +114,9 @@ EOT
         $container = $this->getContainer();
 
         $export = new Export(
-            $input->getOption("gridconfig"),
-            $input->getOption("folder"),
-            $input->getOption("asset"),
             $container,
-            (string) $input->getOption("condition"),
-            (string) $input->getOption("filename"),
-            (string) $input->getOption("timestamp"),
-            (string) $input->getOption("only-changes"),
-            (string) $input->getOption("format"),
-            (string) $input->getOption("delimiter")
+            $input,
+            $output
         );
 
         $export->export();
