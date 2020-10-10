@@ -20,8 +20,8 @@ jobs:
       - name: Setup DB
         run: |
           mysql --version
-          mysql -u root -proot -e "SET GLOBAL innodb_file_format=Barracuda;"
-          mysql -u root -proot -e "SET GLOBAL innodb_large_prefix=1;"
+          mysql -u root -proot -e -h mysql "SET GLOBAL innodb_file_format=Barracuda;"
+          mysql -u root -proot -e -h mysql "SET GLOBAL innodb_large_prefix=1;"
 
       - name: PHP Runner
         uses: nanasess/setup-php@master

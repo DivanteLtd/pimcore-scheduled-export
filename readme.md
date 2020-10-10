@@ -24,7 +24,7 @@ Scheduled Export lets you run ordinary grid exports in the background or using c
 
 ## Compatibility
 
-This module is compatible with Pimcore 5.5.0 and higher.
+This module is compatible with Pimcore 6.3.0 and higher.
 
 ## Installing
 
@@ -34,7 +34,6 @@ composer require divante-ltd/pimcore-scheduled-export
 
 Make sure the dependencies are enabled and installed:
 ```bash
-./bin/console pimcore:bundle:enable PimcoreDevkitBundle
 ./bin/console pimcore:bundle:enable ProcessManagerBundle
 ./bin/console pimcore:bundle:install ProcessManagerBundle
 ```
@@ -46,8 +45,7 @@ Enable the Bundle:
 
 ## Requirements
 
-* Pimcore 5 or 6
-* Pimcore Devkit
+* Pimcore 6.3
 * ProcessManager
 
 ## Usage

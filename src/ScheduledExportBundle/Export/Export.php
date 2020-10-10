@@ -287,11 +287,13 @@ class Export
                 }
             }
             $this->process->progress(count($objectIdBatch));
-            $this->process->setMessage(sprintf("Running (%d/%d)", $this->process->getProgress(), $this->process->getTotal()));
+            $this->process->setMessage(
+                sprintf("Running (%d/%d)", $this->process->getProgress(), $this->process->getTotal())
+            );
             $this->process->save();
             \Pimcore::collectGarbage();
-
         }
+
         $this->process->setMessage("Saving results");
         $this->process->save();
         $this->saveFileInAssets($filenames);
@@ -360,7 +362,7 @@ class Export
     protected function getObjectIds(): array
     {
         $objectIds = [];
-        for($i = 0; $i <= $this->process->getTotal(); $i = $i + self::INTERNAL_BATCH_SIZE) {
+        for ($i = 0; $i <= $this->process->getTotal(); $i = $i + self::INTERNAL_BATCH_SIZE) {
             $this->listing->setOffset($i);
             $this->listing->setLimit(self::INTERNAL_BATCH_SIZE);
             $objectIds[] = $this->listing->loadIdList();
@@ -427,14 +429,14 @@ class Export
             $firstFile = false;
         }
 
-        if($this->input->getOption('divide_file')) {
+        if ($this->input->getOption('divide_file')) {
             $line = strtok($content, $separator);
             $header = $line;
             $counter = 0;
             $fileCounter = 0;
             $subContent = "";
             while ($line !== false) {
-                $line = strtok( $separator );
+                $line = strtok($separator);
                 $subContent .= $line . "\r\n";
                 $counter++;
                 if ($counter % $this->input->getOption('divide_file') == 0) {
@@ -456,7 +458,6 @@ class Export
             $assetFile->setData($content);
             $assetFile->save();
         }
-
     }
 
     /**
