@@ -68,14 +68,9 @@ class Export
 
     /**
      * Export constructor.
-     * @param string $gridConfig
-     * @param string $objectsFolder
-     * @param string $assetFolder
      * @param ContainerInterface $container
-     * @param string|null $condition
-     * @param string|null $fileName
-     * @param string $timestamp
-     * @param string $onlyChanges
+     * @param $input
+     * @param $output
      * @throws \Exception
      */
     public function __construct(
@@ -106,6 +101,9 @@ class Export
         $this->types = str_replace(' ', '', (string) $input->getOption("types"));
     }
 
+    /**
+     * @return WebsiteSetting
+     */
     public function getExportSetting() : WebsiteSetting
     {
         $settings = WebsiteSetting::getByName($this->gridConfig->getId() .
@@ -239,7 +237,7 @@ class Export
     }
 
     /**
-     * @param mixed $timestampFormat
+     * @param string $timestampFormat
      */
     public function setTimestampFormat(string $timestampFormat): void
     {
@@ -307,6 +305,8 @@ class Export
     }
 
     /**
+     * @param array $objectIds
+     * @param string $filename
      * @return Request
      */
     protected function prepareRequest(array $objectIds, string $filename): Request
@@ -409,7 +409,9 @@ class Export
     }
 
     /**
+     * @param array $filenames
      * @return void
+     * @throws \Exception
      */
     protected function saveFileInAssets(array $filenames): void
     {
@@ -462,9 +464,10 @@ class Export
 
     /**
      * @param string $assetFolder
+     * @param int|null $index
      * @return Asset
      */
-    protected function prepareAssetFile($assetFolder, ?int $index = null): Asset
+    protected function prepareAssetFile(string $assetFolder, ?int $index = null): Asset
     {
         $assetFile = new Asset();
 
