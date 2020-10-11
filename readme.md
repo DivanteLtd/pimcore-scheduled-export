@@ -1,6 +1,5 @@
 # Scheduled Export
 [![Analysis Actions](https://github.com/DivanteLtd/pimcore-scheduled-export/workflows/Analysis/badge.svg?branch=master)](https://github.com/DivanteLtd/pimcore-scheduled-export/actions)
-[![Tests Actions](https://github.com/DivanteLtd/pimcore-scheduled-export/workflows/Tests/badge.svg?branch=master)](https://github.com/DivanteLtd/pimcore-scheduled-export/actions)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/2c51a42a456c47c9971a7e2a48bcd6f4)](https://www.codacy.com/app/Divante/pimcore-scheduled-export?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=DivanteLtd/pimcore-scheduled-export&amp;utm_campaign=Badge_Grade)
 [![Latest Stable Version](https://poser.pugx.org/divante-ltd/pimcore-scheduled-export/v/stable)](https://packagist.org/packages/divante-ltd/pimcore-scheduled-export)
 [![Total Downloads](https://poser.pugx.org/divante-ltd/pimcore-scheduled-export/downloads)](https://packagist.org/packages/divante-ltd/pimcore-scheduled-export)
@@ -24,7 +23,7 @@ Scheduled Export lets you run ordinary grid exports in the background or using c
 
 ## Compatibility
 
-This module is compatible with Pimcore 5.5.0 and higher.
+This module is compatible with Pimcore 6.3.0 and higher.
 
 ## Installing
 
@@ -34,7 +33,6 @@ composer require divante-ltd/pimcore-scheduled-export
 
 Make sure the dependencies are enabled and installed:
 ```bash
-./bin/console pimcore:bundle:enable PimcoreDevkitBundle
 ./bin/console pimcore:bundle:enable ProcessManagerBundle
 ./bin/console pimcore:bundle:install ProcessManagerBundle
 ```
@@ -46,8 +44,7 @@ Enable the Bundle:
 
 ## Requirements
 
-* Pimcore 5 or 6
-* Pimcore Devkit
+* Pimcore 6.3
 * ProcessManager
 
 ## Usage
