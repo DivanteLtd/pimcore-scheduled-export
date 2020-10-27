@@ -68,9 +68,14 @@ class Export
 
     /**
      * Export constructor.
+     * @param string $gridConfig
+     * @param string $objectsFolder
+     * @param string $assetFolder
      * @param ContainerInterface $container
-     * @param $input
-     * @param $output
+     * @param string|null $condition
+     * @param string|null $fileName
+     * @param string $timestamp
+     * @param string $onlyChanges
      * @throws \Exception
      */
     public function __construct(
@@ -101,9 +106,6 @@ class Export
         $this->types = str_replace(' ', '', (string) $input->getOption("types"));
     }
 
-    /**
-     * @return WebsiteSetting
-     */
     public function getExportSetting() : WebsiteSetting
     {
         $settings = WebsiteSetting::getByName($this->gridConfig->getId() .
@@ -237,7 +239,7 @@ class Export
     }
 
     /**
-     * @param string $timestampFormat
+     * @param mixed $timestampFormat
      */
     public function setTimestampFormat(string $timestampFormat): void
     {
@@ -285,13 +287,11 @@ class Export
                 }
             }
             $this->process->progress(count($objectIdBatch));
-            $this->process->setMessage(
-                sprintf("Running (%d/%d)", $this->process->getProgress(), $this->process->getTotal())
-            );
+            $this->process->setMessage(sprintf("Running (%d/%d)", $this->process->getProgress(), $this->process->getTotal()));
             $this->process->save();
             \Pimcore::collectGarbage();
-        }
 
+        }
         $this->process->setMessage("Saving results");
         $this->process->save();
         $this->saveFileInAssets($filenames);
@@ -305,8 +305,6 @@ class Export
     }
 
     /**
-     * @param array $objectIds
-     * @param string $filename
      * @return Request
      */
     protected function prepareRequest(array $objectIds, string $filename): Request
@@ -362,7 +360,7 @@ class Export
     protected function getObjectIds(): array
     {
         $objectIds = [];
-        for ($i = 0; $i <= $this->process->getTotal(); $i = $i + self::INTERNAL_BATCH_SIZE) {
+        for($i = 0; $i <= $this->process->getTotal(); $i = $i + self::INTERNAL_BATCH_SIZE) {
             $this->listing->setOffset($i);
             $this->listing->setLimit(self::INTERNAL_BATCH_SIZE);
             $objectIds[] = $this->listing->loadIdList();
@@ -409,9 +407,7 @@ class Export
     }
 
     /**
-     * @param array $filenames
      * @return void
-     * @throws \Exception
      */
     protected function saveFileInAssets(array $filenames): void
     {
@@ -423,7 +419,7 @@ class Export
             $tmpFile = PIMCORE_SYSTEM_TEMP_DIRECTORY . "/" . $filename . ".csv";
             $fileContent = file_get_contents($tmpFile);
             if (!$firstFile) {
-                $content .= preg_replace('/^.+\n/', '', $fileContent);
+                $content .= $separator . preg_replace('/^.+\n/', '', $fileContent);
             } else {
                 $content .= $fileContent;
             }
@@ -431,14 +427,14 @@ class Export
             $firstFile = false;
         }
 
-        if ($this->input->getOption('divide_file')) {
+        if($this->input->getOption('divide_file')) {
             $line = strtok($content, $separator);
             $header = $line;
             $counter = 0;
             $fileCounter = 0;
             $subContent = "";
             while ($line !== false) {
-                $line = strtok($separator);
+                $line = strtok( $separator );
                 $subContent .= $line . "\r\n";
                 $counter++;
                 if ($counter % $this->input->getOption('divide_file') == 0) {
@@ -460,14 +456,14 @@ class Export
             $assetFile->setData($content);
             $assetFile->save();
         }
+
     }
 
     /**
      * @param string $assetFolder
-     * @param int|null $index
      * @return Asset
      */
-    protected function prepareAssetFile(string $assetFolder, ?int $index = null): Asset
+    protected function prepareAssetFile($assetFolder, ?int $index = null): Asset
     {
         $assetFile = new Asset();
 
