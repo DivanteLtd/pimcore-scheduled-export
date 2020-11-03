@@ -37,7 +37,7 @@ class Export
 
     const WS_NAME = 'Last_Scheduled_Export_Date';
 
-    const INTERNAL_BATCH_SIZE = 1000;
+    const INTERNAL_BATCH_SIZE = 10;
 
     private $gridConfig;
     private $objectsFolder;
@@ -65,6 +65,8 @@ class Export
     private $changesFromTimestamp;
     /** @var ProcessRepository $processRepository */
     private $processRepository;
+    /** @var DataObjectHelperController $controller */
+    private $controller;
 
     /**
      * Export constructor.
@@ -93,6 +95,8 @@ class Export
         $this->setTimestampFormat((string) $input->getOption("format"));
         $this->setFilename(\Pimcore\File::getValidFilename((string) $input->getOption("filename")));
         $this->setDelimiter((string) $input->getOption("delimiter"));
+        $this->controller = new DataObjectHelperController();
+        $this->controller->setContainer($this->container);
         $this->input = $input;
         $this->output = $output;
         $this->process = new Process(
@@ -255,52 +259,29 @@ class Export
         $this->process->save();
         $this->prepareListing();
         $objectIds = $this->getObjectIds();
-        $localeService = new LocaleService();
-        $controller = new DataObjectHelperController();
-        $controller->setContainer($this->container);
         $filenames = [];
 
         $this->process->setMessage("Starting");
         $this->process->save();
-        foreach ($objectIds as $objectIdBatch) {
-            $filename = uniqid();
-            $filenames[] = $filename;
-            $request = $this->prepareRequest($objectIdBatch, $filename);
-            if (!count($request->request->get('ids'))) {
-                return;
-            }
-
-            $controller->doExportAction($request, $localeService);
-            $this->process = $this->processRepository->find($this->process->getId());
-            if ($this->process->getStatus() == ProcessManagerBundle::STATUS_STOPPING) {
-                foreach ($filenames as $filename) {
-                    $tmpFile = PIMCORE_SYSTEM_TEMP_DIRECTORY . "/" . $filename . ".csv";
-                    unlink($tmpFile);
-                    if (!$this->input->getOption('preserve_process')) {
-                        $this->process->delete();
-                    } else {
-                        $this->process->setStatus(ProcessManagerBundle::STATUS_STOPPED);
-                        $this->process->setMessage("Stopped by user");
-                        $this->process->save();
-                        return;
-                    }
-                }
-            }
-            $this->process->progress(count($objectIdBatch));
-            $this->process->setMessage(sprintf("Running (%d/%d)", $this->process->getProgress(), $this->process->getTotal()));
+        $filenames = $this->exportToFilenames($objectIds, $filenames);
+        if (!empty($filenames)) {
+            $this->process->setMessage("Saving results");
             $this->process->save();
-            \Pimcore::collectGarbage();
-
+            try {
+                $this->saveFileInAssets($filenames);
+                $this->process->setStatus(ProcessManagerBundle::STATUS_COMPLETED);
+                $this->process->setMessage(sprintf("Done (%d objects exported)", $this->process->getProgress()));
+                $this->updateSettingsDate();
+            } catch (\Exception $exception) {
+                $this->process->setStatus(ProcessManagerBundle::STATUS_FAILED);
+                $this->process->setMessage(sprintf("Error - %s", $exception->getMessage()));
+            }
         }
-        $this->process->setMessage("Saving results");
-        $this->process->save();
-        $this->saveFileInAssets($filenames);
-        $this->process->setStatus(ProcessManagerBundle::STATUS_COMPLETED);
-        $this->process->setMessage(sprintf("Done (%d objects exported)", $this->process->getProgress()));
-        $this->process->save();
-        $this->updateSettingsDate();
+
         if (!$this->input->getOption('preserve_process')) {
             $this->process->delete();
+        } else {
+            $this->process->save();
         }
     }
 
@@ -438,23 +419,17 @@ class Export
                 $subContent .= $line . "\r\n";
                 $counter++;
                 if ($counter % $this->input->getOption('divide_file') == 0) {
-                    $assetFile = $this->prepareAssetFile($assetFolder, $fileCounter);
-                    $assetFile->setData($header . "\r\n" . $subContent);
-                    $assetFile->save();
+                    $this->saveAsset($assetFolder, $fileCounter, $header, $subContent);
                     $subContent = "";
                     $fileCounter++;
                 }
             }
 
             if (strlen($subContent)) {
-                $assetFile = $this->prepareAssetFile($assetFolder, $fileCounter);
-                $assetFile->setData($header . "\r\n" . $subContent);
-                $assetFile->save();
+                $this->saveAsset($assetFolder, $fileCounter, $header, $subContent);
             }
         } else {
-            $assetFile = $this->prepareAssetFile($assetFolder);
-            $assetFile->setData($content);
-            $assetFile->save();
+            $this->saveAsset($assetFolder, null, null, $content);
         }
 
     }
@@ -465,21 +440,26 @@ class Export
      */
     protected function prepareAssetFile($assetFolder, ?int $index = null): Asset
     {
-        $assetFile = new Asset();
-
-        try {
-            $assetFile->setParent(Asset\Service::createFolderByPath($assetFolder));
-        } catch (\Exception $ex) {
-        }
-
         if ($index) {
             $filename = $this->fileName . "-" . $index;
         } else {
             $filename = $this->fileName;
         }
 
+        $filename .= ".csv";
 
-        $assetFile->setFilename($filename . ".csv");
+        if (!$this->timestamp) {
+            $assetFile = Asset::getByPath(Asset\Service::createFolderByPath($assetFolder) . '/' . $filename);
+            if (!$assetFile) {
+                $assetFile = new Asset();
+                $assetFile->setParent(Asset\Service::createFolderByPath($assetFolder));
+                $assetFile->setFilename($filename);
+            }
+        } else {
+            $assetFile = new Asset();
+            $assetFile->setParent(Asset\Service::createFolderByPath($assetFolder));
+            $assetFile->setFilename($filename);
+        }
 
         return $assetFile;
     }
@@ -494,5 +474,64 @@ class Export
             $settings->setData(strftime("%Y-%m-%d %T", $this->importStartTimestamp));
             $settings->save();
         }
+    }
+
+    /**
+     * @param array $objectIds
+     * @param array $filenames
+     * @return array
+     * @throws \Exception
+     */
+    protected function exportToFilenames(array $objectIds): array
+    {
+        $filenames = [];
+        $localeService = new LocaleService();
+        foreach ($objectIds as $objectIdBatch) {
+            $filename = uniqid();
+            $request = $this->prepareRequest($objectIdBatch, $filename);
+            if (!count($request->request->get('ids'))) {
+                break;
+            }
+
+
+            $this->controller->doExportAction($request, $localeService);
+            $filenames[] = $filename;
+            $this->process = $this->processRepository->find($this->process->getId());
+            $this->process->progress(count($objectIdBatch));
+            $this->process->setMessage(sprintf("Running (%d/%d)", $this->process->getProgress(), $this->process->getTotal()));
+            $this->process->save();
+            if ($this->process->getStatus() == ProcessManagerBundle::STATUS_STOPPING) {
+                foreach ($filenames as $filename) {
+                    $tmpFile = PIMCORE_SYSTEM_TEMP_DIRECTORY . "/" . $filename . ".csv";
+                    unlink($tmpFile);
+                }
+                $this->process->setStatus(ProcessManagerBundle::STATUS_STOPPED);
+                $this->process->setMessage("Stopped by user");
+                $this->process->save();
+                break;
+            }
+
+            \Pimcore::collectGarbage();
+        }
+        return $filenames;
+    }
+
+    /**
+     * @param $assetFolder
+     * @param int|null $fileCounter
+     * @param string|null $header
+     * @param string $content
+     * @throws \Exception
+     */
+    protected function saveAsset($assetFolder, ?int $fileCounter, ?string $header, string $content): void
+    {
+        $assetFile = $this->prepareAssetFile($assetFolder, $fileCounter);
+        if ($header) {
+            $assetFile->setData($header . "\r\n" . $content);
+        } else {
+            $assetFile->setData($content);
+        }
+        $assetFile->setFilename(Asset\Service::getUniqueKey($assetFile));
+        $assetFile->save();
     }
 }
