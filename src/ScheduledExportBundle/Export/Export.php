@@ -37,7 +37,7 @@ class Export
 
     const WS_NAME = 'Last_Scheduled_Export_Date';
 
-    const INTERNAL_BATCH_SIZE = 10;
+    const INTERNAL_BATCH_SIZE = 1000;
 
     private $gridConfig;
     private $objectsFolder;
