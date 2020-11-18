@@ -416,7 +416,9 @@ class Export
             $subContent = "";
             while ($line !== false) {
                 $line = strtok( $separator );
-                $subContent .= $line . "\r\n";
+                if ($line !== false) {
+                    $subContent .= $line . "\r\n";
+                }
                 $counter++;
                 if ($counter % $this->input->getOption('divide_file') == 0) {
                     $this->saveAsset($assetFolder, $fileCounter, $header, $subContent);
