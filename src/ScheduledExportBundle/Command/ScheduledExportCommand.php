@@ -105,6 +105,11 @@ EOT
                 '',
                 InputOption::VALUE_OPTIONAL,
                 'Set what types should be exported; e. g. "object,variant"; defaults to default list settings'
+            )->addOption(
+                'object-ids',
+                '',
+                InputOption::VALUE_OPTIONAL,
+                'Export only specified object ids'
             )
         ;
     }

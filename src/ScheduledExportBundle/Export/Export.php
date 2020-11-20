@@ -257,8 +257,15 @@ class Export
     {
         $this->process->setStatus(ProcessManagerBundle::STATUS_RUNNING);
         $this->process->save();
-        $this->prepareListing();
-        $objectIds = $this->getObjectIds();
+
+        if ($this->input->getOption('object-ids')) {
+            $objectIds = explode(',', $this->input->getOption('object-ids'));
+            $objectIds = array_map('intval', $objectIds);
+            $objectIds = array_chunk($objectIds, self::INTERNAL_BATCH_SIZE);
+        } else {
+            $this->prepareListing();
+            $objectIds = $this->getObjectIds();
+        }
         $filenames = [];
 
         $this->process->setMessage("Starting");

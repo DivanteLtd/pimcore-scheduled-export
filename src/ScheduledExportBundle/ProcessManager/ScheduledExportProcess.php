@@ -29,9 +29,14 @@ final class ScheduledExportProcess implements ProcessInterface
     {
         $settings = $executable->getSettings();
 
+        if (is_array($params)) {
+            $settings = array_merge($settings, $params);
+        }
+
         $command = sprintf(
             'scheduled-export:start -g %s -f %s -a %s --filename %s -t %s --format %s'
-            . ' -c %s --only-changes %s --delimiter %s --divide_file %s --preserve_process %s --types %s',
+            . ' -c %s --only-changes %s --delimiter %s --divide_file %s --preserve_process %s --types %s'
+            . ' --object-ids %s',
             escapeshellarg($settings['grid_config']),
             escapeshellarg($settings['objects_folder']),
             escapeshellarg($settings['asset_folder']),
@@ -43,7 +48,8 @@ final class ScheduledExportProcess implements ProcessInterface
             escapeshellarg($settings['delimiter']),
             escapeshellarg($settings['divide_file']),
             escapeshellarg($settings['preserve_process']),
-            escapeshellarg($settings['types'])
+            escapeshellarg($settings['types']),
+            escapeshellarg($settings['object_ids'] ?? '')
         );
 
         $command = PIMCORE_PROJECT_ROOT . "/bin/console " . $command;
