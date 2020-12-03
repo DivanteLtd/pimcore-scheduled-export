@@ -7,6 +7,7 @@
 
 namespace Divante\ScheduledExportBundle\Export;
 
+use Divante\ScheduledExportBundle\Event\BatchExportedEvent;
 use Pimcore\Bundle\AdminBundle\Controller\Admin\DataObject\DataObjectHelperController;
 use Pimcore\Localization\LocaleService;
 use Pimcore\Logger;
@@ -23,6 +24,7 @@ use ProcessManagerBundle\Repository\ProcessRepository;
 use Symfony\Component\Console\Input\Input;
 use Symfony\Component\Console\Output\Output;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Session\Attribute\AttributeBagInterface;
 
@@ -495,6 +497,7 @@ class Export
     {
         $filenames = [];
         $localeService = new LocaleService();
+        $dispatcher = $this->container->get('event_dispatcher');
         foreach ($objectIds as $objectIdBatch) {
             $filename = uniqid();
             $request = $this->prepareRequest($objectIdBatch, $filename);
@@ -502,8 +505,10 @@ class Export
                 break;
             }
 
-
             $this->controller->doExportAction($request, $localeService);
+            $event = new BatchExportedEvent($objectIdBatch ?? []);
+            $dispatcher->dispatch(BatchExportedEvent::NAME, $event);
+
             $filenames[] = $filename;
             $this->process = $this->processRepository->find($this->process->getId());
             $this->process->progress(count($objectIdBatch));
