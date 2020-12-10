@@ -13,7 +13,7 @@ class ScheduledExportSavedEvent extends \Symfony\Component\EventDispatcher\Event
     const NAME = 'divante.scheduled_export.scheduled_export_saved';
 
     /** @var string */
-    private $filenames;
+    private $filename;
 
     /**
      * ScheduledExportSavedEvent constructor.
