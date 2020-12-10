@@ -544,15 +544,16 @@ class Export
      */
     protected function saveAsset($assetFolder, ?int $fileCounter, ?string $header, string $content): void
     {
-        $assetFile = Asset\Service::getUniqueKey($this->prepareAssetFile($assetFolder, $fileCounter));
+        $assetFile = $this->prepareAssetFile($assetFolder, $fileCounter);
         if ($header) {
             $assetFile->setData($header . "\r\n" . $content);
         } else {
             $assetFile->setData($content);
         }
-        $assetFile->setFilename($assetFile);
+        $assetFilename = Asset\Service::getUniqueKey($assetFile);
+        $assetFile->setFilename($assetFilename);
         $assetFile->save();
-        $event = new ScheduledExportSavedEvent($assetFile);
+        $event = new ScheduledExportSavedEvent($assetFilename);
         $this->container->get('event_dispatcher')->dispatch(ScheduledExportSavedEvent::NAME, $event);
     }
 }
