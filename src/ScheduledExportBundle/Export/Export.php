@@ -8,6 +8,7 @@
 namespace Divante\ScheduledExportBundle\Export;
 
 use Divante\ScheduledExportBundle\Event\BatchExportedEvent;
+use Divante\ScheduledExportBundle\Event\ScheduledExportSavedEvent;
 use Pimcore\Bundle\AdminBundle\Controller\Admin\DataObject\DataObjectHelperController;
 use Pimcore\Localization\LocaleService;
 use Pimcore\Logger;
@@ -112,6 +113,9 @@ class Export
         $this->types = str_replace(' ', '', (string) $input->getOption("types"));
     }
 
+    /**
+     * @return WebsiteSetting
+     */
     public function getExportSetting() : WebsiteSetting
     {
         $settings = WebsiteSetting::getByName($this->gridConfig->getId() .
@@ -350,7 +354,7 @@ class Export
     protected function getObjectIds(): array
     {
         $objectIds = [];
-        for($i = 0; $i <= $this->process->getTotal(); $i = $i + self::INTERNAL_BATCH_SIZE) {
+        for ($i = 0; $i <= $this->process->getTotal(); $i = $i + self::INTERNAL_BATCH_SIZE) {
             $this->listing->setOffset($i);
             $this->listing->setLimit(self::INTERNAL_BATCH_SIZE);
             $objectIds[] = $this->listing->loadIdList();
@@ -417,14 +421,14 @@ class Export
             $firstFile = false;
         }
 
-        if($this->input->getOption('divide_file')) {
+        if ($this->input->getOption('divide_file')) {
             $line = strtok($content, $separator);
             $header = $line;
             $counter = 0;
             $fileCounter = 0;
             $subContent = "";
             while ($line !== false) {
-                $line = strtok( $separator );
+                $line = strtok($separator);
                 if ($line !== false) {
                     $subContent .= $line . "\r\n";
                 }
@@ -442,7 +446,6 @@ class Export
         } else {
             $this->saveAsset($assetFolder, null, null, $content);
         }
-
     }
 
     /**
@@ -512,7 +515,9 @@ class Export
             $filenames[] = $filename;
             $this->process = $this->processRepository->find($this->process->getId());
             $this->process->progress(count($objectIdBatch));
-            $this->process->setMessage(sprintf("Running (%d/%d)", $this->process->getProgress(), $this->process->getTotal()));
+            $this->process->setMessage(
+                sprintf("Running (%d/%d)", $this->process->getProgress(), $this->process->getTotal())
+            );
             $this->process->save();
             if ($this->process->getStatus() == ProcessManagerBundle::STATUS_STOPPING) {
                 foreach ($filenames as $filename) {
@@ -539,13 +544,15 @@ class Export
      */
     protected function saveAsset($assetFolder, ?int $fileCounter, ?string $header, string $content): void
     {
-        $assetFile = $this->prepareAssetFile($assetFolder, $fileCounter);
+        $assetFile = Asset\Service::getUniqueKey($this->prepareAssetFile($assetFolder, $fileCounter));
         if ($header) {
             $assetFile->setData($header . "\r\n" . $content);
         } else {
             $assetFile->setData($content);
         }
-        $assetFile->setFilename(Asset\Service::getUniqueKey($assetFile));
+        $assetFile->setFilename($assetFile);
         $assetFile->save();
+        $event = new ScheduledExportSavedEvent($assetFile);
+        $this->container->get('event_dispatcher')->dispatch(ScheduledExportSavedEvent::NAME, $event);
     }
 }
