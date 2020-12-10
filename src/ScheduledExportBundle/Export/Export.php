@@ -113,6 +113,9 @@ class Export
         $this->types = str_replace(' ', '', (string) $input->getOption("types"));
     }
 
+    /**
+     * @return WebsiteSetting
+     */
     public function getExportSetting() : WebsiteSetting
     {
         $settings = WebsiteSetting::getByName($this->gridConfig->getId() .
