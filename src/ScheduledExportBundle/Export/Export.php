@@ -552,6 +552,7 @@ class Export
         }
         $assetFilename = Asset\Service::getUniqueKey($assetFile);
         $assetFile->setFilename($assetFilename);
+        $assetFile->save();
         $event = new ScheduledExportSavedEvent($assetFilename);
         $this->container->get('event_dispatcher')->dispatch(ScheduledExportSavedEvent::NAME, $event);
     }
