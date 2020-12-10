@@ -27,5 +27,4 @@ class BatchExportedEvent extends \Symfony\Component\EventDispatcher\Event
     {
         return $this->objectsIds;
     }
-
 }
