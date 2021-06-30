@@ -547,7 +547,7 @@ class Export
         $assetFile = $this->prepareAssetFile($assetFolder, $fileCounter);
         $data = '';
         if ($this->input->getOption('add_utf_bom')) {
-            $data = ( chr(0xEF) . chr(0xBB) . chr(0xBF) )
+            $data = chr(0xEF) . chr(0xBB) . chr(0xBF);
         }
 
         if ($header) {
