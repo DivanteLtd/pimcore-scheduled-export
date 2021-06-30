@@ -49,7 +49,7 @@ final class ScheduledExportProcess implements ProcessInterface
             escapeshellarg($settings['divide_file']),
             escapeshellarg($settings['preserve_process']),
             escapeshellarg($settings['types']),
-            escapeshellarg($settings['object_ids'] ?? '')
+            escapeshellarg($settings['object_ids'] ?? ''),
             escapeshellarg($settings['add_utf_bom'] ?? 0)
         );
 
