@@ -110,6 +110,11 @@ EOT
                 '',
                 InputOption::VALUE_OPTIONAL,
                 'Export only specified object ids'
+            )->addOption(
+                'add_utf_bom',
+                '',
+                InputOption::VALUE_OPTIONAL,
+                'Add BOM (Byte Order Mark)'
             )
         ;
     }

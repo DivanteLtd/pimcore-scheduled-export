@@ -164,6 +164,12 @@ document.addEventListener('processmanager.ready', function() {
                             value: this.data.settings.types,
                             emptyText: t('scheduledexport_types_example'),
                         },
+                        {
+                            xtype: 'checkbox',
+                            fieldLabel: t('scheduledexport_add_utf_bom'),
+                            name: 'add_utf_bom',
+                            value: this.data.settings.add_utf_bom,
+                        },
                     ]
                 }
                 ,

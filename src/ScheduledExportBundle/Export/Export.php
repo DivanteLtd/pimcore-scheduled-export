@@ -545,11 +545,17 @@ class Export
     protected function saveAsset($assetFolder, ?int $fileCounter, ?string $header, string $content): void
     {
         $assetFile = $this->prepareAssetFile($assetFolder, $fileCounter);
-        if ($header) {
-            $assetFile->setData($header . "\r\n" . $content);
-        } else {
-            $assetFile->setData($content);
+        $data = '';
+        if ($this->input->getOption('add_utf_bom')) {
+            $data = ( chr(0xEF) . chr(0xBB) . chr(0xBF) )
         }
+
+        if ($header) {
+            $data = $data . $header . "\r\n" . $content;
+        } else {
+            $data = $data . $content;
+        }
+        $assetFile->setData($data);
         $assetFilename = Asset\Service::getUniqueKey($assetFile);
         $assetFile->setFilename($assetFilename);
         $assetFile->save();

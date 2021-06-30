@@ -37,6 +37,7 @@ class ScheduledExportType extends AbstractType
             ->add('divide_file', TextType::class)
             ->add('preserve_process', CheckboxType::class)
             ->add('types', TextType::class)
+            ->add('add_utf_bom', CheckboxType::class)
         ;
     }
 
