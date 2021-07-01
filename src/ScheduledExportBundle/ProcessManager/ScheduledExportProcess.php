@@ -14,6 +14,7 @@ use ProcessManagerBundle\Model\ExecutableInterface;
 use ProcessManagerBundle\Process\ProcessInterface;
 use Symfony\Component\DependencyInjection\ContainerAwareTrait;
 use Symfony\Component\HttpKernel\Kernel;
+use Symfony\Component\Process\Process;
 
 /**
  * Class ScheduledExportProcess
@@ -53,12 +54,12 @@ final class ScheduledExportProcess implements ProcessInterface
             escapeshellarg($settings['add_utf_bom'] ?? 0)
         );
 
-        $command = PIMCORE_PROJECT_ROOT . "/bin/console " . $command;
+        $command = Console::getExecutable('php') . ' ' . PIMCORE_PROJECT_ROOT . "/bin/console " . $command;
 
         if ($settings['foreground']) {
-            return Console::runPhpScript($command);
+            return Console::exec($command);
         } else {
-            return Console::runPhpScriptInBackground($command);
+            return Console::execInBackground($command);
         };
     }
 }
