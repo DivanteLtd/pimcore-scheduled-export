@@ -37,7 +37,7 @@
   ],
   "require": {
     "pimcore/pimcore": "^10.0",
-    "dpfaffenbauer/process-manager": "^3.0"
+    "elements/process-manager-bundle": "^3"
   },
   "require-dev": {
     "phpunit/phpunit": "^7.5",

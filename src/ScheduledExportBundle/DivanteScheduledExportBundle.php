@@ -21,7 +21,7 @@ class DivanteScheduledExportBundle extends AbstractPimcoreBundle
     /**
      * {@inheritdoc}
      */
-    protected function getComposerPackageName()
+    protected function getComposerPackageName(): string
     {
         return 'divante-ltd/pimcore-scheduled-export';
     }
