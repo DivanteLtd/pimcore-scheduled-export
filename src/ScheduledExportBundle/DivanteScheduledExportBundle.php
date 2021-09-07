@@ -18,6 +18,11 @@ class DivanteScheduledExportBundle extends AbstractPimcoreBundle
 {
     use PackageVersionTrait;
 
+    public function getInstaller(): Installer
+    {
+        return $this->container->get(Installer::class);
+    }
+
     /**
      * {@inheritdoc}
      */
@@ -47,3 +52,4 @@ class DivanteScheduledExportBundle extends AbstractPimcoreBundle
         ];
     }
 }
+
