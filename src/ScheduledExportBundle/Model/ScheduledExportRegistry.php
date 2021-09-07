@@ -4,12 +4,16 @@ declare(strict_types=1);
 
 namespace Divante\ScheduledExportBundle\Model;
 
+use Divante\ScheduledExportBundle\Model\ScheduledExportRegistry\Dao;
+use Exception;
+use Pimcore\Cache;
 use Pimcore\Model\Element\ElementInterface;
 use Pimcore\Model\Element\Service;
 use Pimcore\Model\AbstractModel;
+use Pimcore\Cache\Runtime;
 
 /**
- * @method \Divante\ScheduledExportBundle\Model\ScheduledExportRegistry\Dao getDao()
+ * @method Dao getDao()
  * @method void save()
  */
 class ScheduledExportRegistry extends AbstractModel
@@ -69,14 +73,14 @@ class ScheduledExportRegistry extends AbstractModel
 
         return $this;
     }
-    
+
     public function setData(string $data): self
     {
         $this->data = $data;
 
         return $this;
     }
-    
+
     public function getData(): string
     {
         return $this->data;
@@ -90,7 +94,7 @@ class ScheduledExportRegistry extends AbstractModel
 
     public function clearDependentCache()
     {
-        \Pimcore\Cache::clearTag('scheduled_export_exports');
+        Cache::clearTag('scheduled_export_exports');
     }
 
 
@@ -99,16 +103,16 @@ class ScheduledExportRegistry extends AbstractModel
         $cacheKey = 'scheduled_export_exports_' . $id;
 
         try {
-            $export = \Pimcore\Cache\Runtime::get($cacheKey);
+            $export = Runtime::get($cacheKey);
             if (!$export) {
-                throw new \Exception(sprintf('Scheduled export with ID `%s` does not exist.', $id));
+                throw new Exception(sprintf('Scheduled export with ID `%s` does not exist.', $id));
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             try {
                 $export = new self();
                 $export->getDao()->getById($id);
-                \Pimcore\Cache\Runtime::set($cacheKey, $export);
-            } catch (\Exception $e) {
+                Runtime::set($cacheKey, $export);
+            } catch (Exception $e) {
                 return null;
             }
         }
@@ -116,6 +120,9 @@ class ScheduledExportRegistry extends AbstractModel
         return $export;
     }
 
+    /**
+     * @throws Exception
+     */
     public static function getByGridConfigId(int $gridConfigId): ?self
     {
         $nameCacheKey = static::getCacheKey($gridConfigId);

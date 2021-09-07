@@ -4,26 +4,27 @@ declare(strict_types=1);
 
 namespace Divante\ScheduledExportBundle\Model\ScheduledExportRegistry\Listing;
 
+use Divante\ScheduledExportBundle\Model\ScheduledExportRegistry\Listing;
 use Pimcore\Model;
 use Divante\ScheduledExportBundle\Model\ScheduledExportRegistry;
 
 /**
- * @property \Divante\ScheduledExportBundle\Model\ScheduledExportRegistry\Listing $model
+ * @property Listing $model
  */
 class Dao extends Model\Dao\PhpArrayTable
 {
     public function load(): array
     {
-        $settingsData = $this->db->fetchAll($this->model->getFilter(), $this->model->getOrder());
+        $exportsData = $this->db->fetchAll($this->model->getFilter(), $this->model->getOrder());
 
-        $settings = [];
-        foreach ($settingsData as $settingData) {
-            $settings[] = ScheduledExportRegistry::getById($settingData['id']);
+        $exports = [];
+        foreach ($exportsData as $exportData) {
+            $exports[] = ScheduledExportRegistry::getById($exportData['id']);
         }
 
-        $this->model->setSettings($settings);
+        $this->model->setExports($exports);
 
-        return $settings;
+        return $exports;
     }
 
     /**

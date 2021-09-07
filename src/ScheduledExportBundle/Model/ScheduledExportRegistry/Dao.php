@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Divante\ScheduledExportBundle\Model\ScheduledExportRegistry;
 
+use Exception;
 use Pimcore\Model;
 
 /**
@@ -14,7 +15,7 @@ class Dao extends Model\Dao\AbstractDao
     const TABLE_NAME = 'bundle_scheduledexport_registry';
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     public function getById(int $id)
     {
@@ -26,14 +27,14 @@ class Dao extends Model\Dao\AbstractDao
         );
 
         if (!$data['id']) {
-            throw new \Exception(sprintf('Unable to load scheduled export registry with ID `%s`', $id));
+            throw new Exception(sprintf('Unable to load scheduled export registry with ID `%s`', $id));
         }
 
         $this->assignVariablesToModel($data);
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     public function getByGridConfigId(int $gridConfigId)
     {
@@ -45,7 +46,10 @@ class Dao extends Model\Dao\AbstractDao
         );
 
         if (!$data['id']) {
-            throw new \Exception(sprintf('Unable to load scheduled export registry with grid config ID `%s`', $id));
+            throw new Exception(sprintf(
+                'Unable to load scheduled export registry with grid config ID `%s`',
+                $gridConfigId
+            ));
         }
 
         $this->assignVariablesToModel($data);
