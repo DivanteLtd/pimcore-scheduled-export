@@ -52,4 +52,3 @@ class DivanteScheduledExportBundle extends AbstractPimcoreBundle
         ];
     }
 }
-

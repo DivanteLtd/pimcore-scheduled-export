@@ -559,10 +559,11 @@ class Export
         $assetFile->setData($data);
         $assetFilename = Asset\Service::getUniqueKey($assetFile);
         $assetFile->setFilename($assetFilename);
-        $assetFile->save(
-            ['versionNote' => sprintf("Scheduled Export on folder (%s), gridconfig -  %s",
-                $this->objectsFolder, $this->gridConfig->getName())]
-        );
+        $assetFile->save(['versionNote' => sprintf(
+            "Scheduled Export on folder (%s), gridconfig -  %s",
+            $this->objectsFolder,
+            $this->gridConfig->getName()
+        )]);
         $event = new ScheduledExportSavedEvent($assetFilename);
         $this->container->get('event_dispatcher')->dispatch(ScheduledExportSavedEvent::NAME, $event);
     }

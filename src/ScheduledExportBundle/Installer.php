@@ -74,7 +74,6 @@ class Installer extends MigrationInstaller
 
     private function persistDatabase(): void
     {
-
     }
 
     private function uninstallDatabase(): void
