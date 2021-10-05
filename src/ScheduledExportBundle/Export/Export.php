@@ -9,6 +9,7 @@ namespace Divante\ScheduledExportBundle\Export;
 
 use Divante\ScheduledExportBundle\Event\BatchExportedEvent;
 use Divante\ScheduledExportBundle\Event\ScheduledExportSavedEvent;
+use Divante\ScheduledExportBundle\Model\ScheduledExportRegistry;
 use Pimcore\Bundle\AdminBundle\Controller\Admin\DataObject\DataObjectHelperController;
 use Pimcore\Localization\LocaleService;
 use Pimcore\Logger;
@@ -17,7 +18,6 @@ use Pimcore\Model\DataObject\ClassDefinition;
 use Pimcore\Model\DataObject\Folder;
 use Pimcore\Model\DataObject\Listing;
 use Pimcore\Model\GridConfig;
-use Pimcore\Model\WebsiteSetting;
 use Pimcore\Tool;
 use ProcessManagerBundle\Model\Process;
 use ProcessManagerBundle\ProcessManagerBundle;
@@ -37,8 +37,6 @@ use Symfony\Component\HttpFoundation\Session\Attribute\AttributeBagInterface;
 class Export
 {
     const SETTINGS = '{"enableInheritance":true,"delimiter":"%delimiter%"}';
-
-    const WS_NAME = 'Last_Scheduled_Export_Date';
 
     const INTERNAL_BATCH_SIZE = 1000;
 
@@ -114,22 +112,23 @@ class Export
     }
 
     /**
-     * @return WebsiteSetting
+     * @return ScheduledExportRegistry
      */
-    public function getExportSetting() : WebsiteSetting
+    public function getExportRegistry() : ScheduledExportRegistry
     {
-        $settings = WebsiteSetting::getByName($this->gridConfig->getId() .
-            "_" . Folder::getByPath($this->objectsFolder)->getId() .
-            "_" . self::WS_NAME);
-        if (!$settings) {
-            $settings = new WebsiteSetting();
-            $settings->setName($this->gridConfig->getId() .
-                "_" . Folder::getByPath($this->objectsFolder)->getId() .
-                "_" . self::WS_NAME);
-            $settings->save();
+        $exportRegistry = ScheduledExportRegistry::getByGridConfigId(
+            $this->gridConfig->getId()
+        );
+
+        if (!$exportRegistry) {
+            $exportRegistry = new ScheduledExportRegistry();
+            $exportRegistry->setGridConfigId(
+                $this->gridConfig->getId()
+            );
+            $exportRegistry->save();
         }
 
-        return $settings;
+        return $exportRegistry;
     }
 
     /**
@@ -161,10 +160,10 @@ class Export
      */
     public function setOnlyChanges(string $onlyChanges): void
     {
-        $settings = $this->getExportSetting();
+        $exportRegistry = $this->getExportRegistry();
         if ($onlyChanges === "1") {
             $this->onlyChanges = true;
-            $this->changesFromTimestamp = strtotime($settings->getData());
+            $this->changesFromTimestamp = strtotime($exportRegistry->getData());
         } else {
             $this->onlyChanges = false;
             $this->changesFromTimestamp = 0;
@@ -276,7 +275,9 @@ class Export
 
         $this->process->setMessage("Starting");
         $this->process->save();
+
         $filenames = $this->exportToFilenames($objectIds, $filenames);
+
         if (!empty($filenames)) {
             $this->process->setMessage("Saving results");
             $this->process->save();
@@ -284,7 +285,7 @@ class Export
                 $this->saveFileInAssets($filenames);
                 $this->process->setStatus(ProcessManagerBundle::STATUS_COMPLETED);
                 $this->process->setMessage(sprintf("Done (%d objects exported)", $this->process->getProgress()));
-                $this->updateSettingsDate();
+                $this->updateExportRegistry();
             } catch (\Exception $exception) {
                 $this->process->setStatus(ProcessManagerBundle::STATUS_FAILED);
                 $this->process->setMessage(sprintf("Error - %s", $exception->getMessage()));
@@ -481,12 +482,12 @@ class Export
     /**
      *
      */
-    private function updateSettingsDate(): void
+    private function updateExportRegistry(): void
     {
         if ($this->onlyChanges) {
-            $settings = $this->getExportSetting();
-            $settings->setData(strftime("%Y-%m-%d %T", $this->importStartTimestamp));
-            $settings->save();
+            $exportRegistry = $this->getExportRegistry();
+            $exportRegistry->setData(strftime("%Y-%m-%d %T", $this->importStartTimestamp));
+            $exportRegistry->save();
         }
     }
 
@@ -558,10 +559,11 @@ class Export
         $assetFile->setData($data);
         $assetFilename = Asset\Service::getUniqueKey($assetFile);
         $assetFile->setFilename($assetFilename);
-        $assetFile->save(
-            ['versionNote' => sprintf("Scheduled Export on folder (%s), gridconfig -  %s",
-            $this->objectsFolder, $this->gridConfig->getName())]
-        );
+        $assetFile->save(['versionNote' => sprintf(
+            "Scheduled Export on folder (%s), gridconfig -  %s",
+            $this->objectsFolder,
+            $this->gridConfig->getName()
+        )]);
         $event = new ScheduledExportSavedEvent($assetFilename);
         $this->container->get('event_dispatcher')->dispatch(ScheduledExportSavedEvent::NAME, $event);
     }
