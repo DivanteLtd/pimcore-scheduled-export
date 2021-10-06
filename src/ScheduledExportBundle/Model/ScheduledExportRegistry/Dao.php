@@ -36,7 +36,7 @@ class Dao extends Model\Dao\AbstractDao
     /**
      * @throws Exception
      */
-    public function getByGridConfigId(int $gridConfigId)
+    public function getByGridConfigId(string $gridConfigId)
     {
         $data = $this->db->fetchRow(
             'SELECT * FROM ' . self::TABLE_NAME . ' WHERE gridConfigId = ?',

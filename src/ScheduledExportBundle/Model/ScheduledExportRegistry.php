@@ -26,7 +26,7 @@ class ScheduledExportRegistry extends AbstractModel
     protected $id;
 
     /**
-     * @var int
+     * @var string
      */
     protected $gridConfigId;
 
@@ -41,7 +41,7 @@ class ScheduledExportRegistry extends AbstractModel
     protected static $nameIdMappingCache = [];
 
 
-    public function __construct(int $gridConfigId = null, $data = null)
+    public function __construct(string $gridConfigId = null, $data = null)
     {
         if (!empty($gridConfigId) && !empty($data)) {
             $this->setGridConfigId($gridConfigId);
@@ -62,12 +62,12 @@ class ScheduledExportRegistry extends AbstractModel
         return $this;
     }
 
-    public function getGridConfigId(): int
+    public function getGridConfigId(): string
     {
         return $this->gridConfigId;
     }
 
-    public function setGridConfigId(int $gridConfigId): self
+    public function setGridConfigId(string $gridConfigId): self
     {
         $this->gridConfigId = $gridConfigId;
 
@@ -87,7 +87,7 @@ class ScheduledExportRegistry extends AbstractModel
     }
 
 
-    protected static function getCacheKey(int $gridConfigId): string
+    protected static function getCacheKey(string $gridConfigId): string
     {
         return $gridConfigId . '~~~' . self::WS_NAME;
     }
@@ -123,7 +123,7 @@ class ScheduledExportRegistry extends AbstractModel
     /**
      * @throws Exception
      */
-    public static function getByGridConfigId(int $gridConfigId): ?self
+    public static function getByGridConfigId(string $gridConfigId): ?self
     {
         $nameCacheKey = static::getCacheKey($gridConfigId);
 

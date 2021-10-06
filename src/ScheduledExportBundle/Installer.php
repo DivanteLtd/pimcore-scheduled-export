@@ -42,7 +42,7 @@ class Installer extends MigrationInstaller
         \Pimcore\Db::get()->query(
             'CREATE TABLE IF NOT EXISTS `' . Dao::TABLE_NAME . '` (
                   `id` bigint(20) NOT NULL AUTO_INCREMENT,
-                  `gridConfigId` bigint(20) NOT NULL,
+                  `gridConfigId` varchar(255) NOT NULL,
                   `data` varchar(255) NOT NULL,
                   PRIMARY KEY (`id`)
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;'
@@ -66,7 +66,9 @@ class Installer extends MigrationInstaller
             if (strpos($name, 'Last_Scheduled_Export_Date')) {
                 $name = explode('_', $name);
 
-                $exportRegistry = new ScheduledExportRegistry((int) $name[0], $item->getData());
+                $adaptedGridConfigId = sprintf('%s_%s', $name[0], $name[1]);
+
+                $exportRegistry = new ScheduledExportRegistry($adaptedGridConfigId, $item->getData());
                 $exportRegistry->save();
             }
         }
