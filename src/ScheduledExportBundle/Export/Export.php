@@ -10,6 +10,7 @@ namespace Divante\ScheduledExportBundle\Export;
 use Divante\ScheduledExportBundle\Event\BatchExportedEvent;
 use Divante\ScheduledExportBundle\Event\ScheduledExportSavedEvent;
 use Divante\ScheduledExportBundle\Model\ScheduledExportRegistry;
+use Exception;
 use Pimcore\Bundle\AdminBundle\Controller\Admin\DataObject\DataObjectHelperController;
 use Pimcore\Localization\LocaleService;
 use Pimcore\Logger;
@@ -79,7 +80,7 @@ class Export
      * @param string|null $fileName
      * @param string $timestamp
      * @param string $onlyChanges
-     * @throws \Exception
+     * @throws Exception
      */
     public function __construct(
         $container,
@@ -113,18 +114,21 @@ class Export
 
     /**
      * @return ScheduledExportRegistry
+     * @throws Exception
      */
     public function getExportRegistry() : ScheduledExportRegistry
     {
-        $exportRegistry = ScheduledExportRegistry::getByGridConfigId(
-            $this->gridConfig->getId()
+        $adaptedGridConfigId = sprintf(
+            '%s_%s',
+            $this->gridConfig->getId(),
+            Folder::getByPath($this->objectsFolder)->getId() ?? 0
         );
+
+        $exportRegistry = ScheduledExportRegistry::getByGridConfigId($adaptedGridConfigId);
 
         if (!$exportRegistry) {
             $exportRegistry = new ScheduledExportRegistry();
-            $exportRegistry->setGridConfigId(
-                $this->gridConfig->getId()
-            );
+            $exportRegistry->setGridConfigId($adaptedGridConfigId);
             $exportRegistry->save();
         }
 
@@ -147,7 +151,7 @@ class Export
     /**
      * @param string $gridId
      * @return void
-     * @throws \Exception
+     * @throws Exception
      */
     public function setGridConfig(string $gridId): void
     {
@@ -286,7 +290,7 @@ class Export
                 $this->process->setStatus(ProcessManagerBundle::STATUS_COMPLETED);
                 $this->process->setMessage(sprintf("Done (%d objects exported)", $this->process->getProgress()));
                 $this->updateExportRegistry();
-            } catch (\Exception $exception) {
+            } catch (Exception $exception) {
                 $this->process->setStatus(ProcessManagerBundle::STATUS_FAILED);
                 $this->process->setMessage(sprintf("Error - %s", $exception->getMessage()));
             }
@@ -495,7 +499,7 @@ class Export
      * @param array $objectIds
      * @param array $filenames
      * @return array
-     * @throws \Exception
+     * @throws Exception
      */
     protected function exportToFilenames(array $objectIds): array
     {
@@ -541,7 +545,7 @@ class Export
      * @param int|null $fileCounter
      * @param string|null $header
      * @param string $content
-     * @throws \Exception
+     * @throws Exception
      */
     protected function saveAsset($assetFolder, ?int $fileCounter, ?string $header, string $content): void
     {
