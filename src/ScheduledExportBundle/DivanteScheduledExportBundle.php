@@ -7,6 +7,7 @@
 
 namespace Divante\ScheduledExportBundle;
 
+use Divante\ScheduledExportBundle\Migrations\Installer;
 use Pimcore\Extension\Bundle\AbstractPimcoreBundle;
 use Pimcore\Extension\Bundle\Traits\PackageVersionTrait;
 

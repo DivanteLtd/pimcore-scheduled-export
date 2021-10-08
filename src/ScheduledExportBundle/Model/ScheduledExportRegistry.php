@@ -43,7 +43,7 @@ class ScheduledExportRegistry extends AbstractModel
 
     public function __construct(string $gridConfigId = null, $data = null)
     {
-        if (!empty($gridConfigId) && !empty($data)) {
+        if (!empty($gridConfigId)) {
             $this->setGridConfigId($gridConfigId);
             $this->setData($data);
         }

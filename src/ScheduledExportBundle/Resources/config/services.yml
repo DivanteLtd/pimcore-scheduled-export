@@ -23,7 +23,7 @@ services:
         tags:
             - { name: 'process_manager.process', type: 'scheduledexport', form-type: Divante\ScheduledExportBundle\Form\Type\ProcessManager\ScheduledExportType }
 
-    Divante\ScheduledExportBundle\Installer:
+    Divante\ScheduledExportBundle\Migrations\Installer:
       public: true
       arguments:
         $bundle: "@=service('kernel').getBundle('DivanteScheduledExportBundle')"

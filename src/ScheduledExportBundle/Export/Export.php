@@ -124,14 +124,14 @@ class Export
             Folder::getByPath($this->objectsFolder)->getId() ?? 0
         );
 
-        $exportRegistry = ScheduledExportRegistry::getByGridConfigId($adaptedGridConfigId);
-
-        if (!$exportRegistry) {
+        try {
+            $exportRegistry = ScheduledExportRegistry::getByGridConfigId($adaptedGridConfigId);
+        } catch (Exception $exception) {
             $exportRegistry = new ScheduledExportRegistry();
             $exportRegistry->setGridConfigId($adaptedGridConfigId);
             $exportRegistry->save();
         }
-
+        
         return $exportRegistry;
     }
 

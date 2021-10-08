@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Divante\ScheduledExportBundle;
+namespace Divante\ScheduledExportBundle\Migrations;
 
 use Divante\ScheduledExportBundle\Model\ScheduledExportRegistry;
 use Divante\ScheduledExportBundle\Model\ScheduledExportRegistry\Dao;
@@ -43,20 +43,10 @@ class Installer extends MigrationInstaller
             'CREATE TABLE IF NOT EXISTS `' . Dao::TABLE_NAME . '` (
                   `id` bigint(20) NOT NULL AUTO_INCREMENT,
                   `gridConfigId` varchar(255) NOT NULL,
-                  `data` varchar(255) NOT NULL,
+                  `data` varchar(255),
                   PRIMARY KEY (`id`)
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;'
         );
-
-        //insert permission
-        $key = Dao::TABLE_NAME;
-        $permission = new Definition();
-        $permission->setKey($key);
-
-        $res = new DefinitionDao();
-        $res->configure(\Pimcore\Db::get());
-        $res->setModel($permission);
-        $res->save();
 
         $list = new Listing();
         $settings = $list->getSettings();
@@ -68,7 +58,7 @@ class Installer extends MigrationInstaller
 
                 $adaptedGridConfigId = sprintf('%s_%s', $name[0], $name[1]);
 
-                $exportRegistry = new ScheduledExportRegistry($adaptedGridConfigId, $item->getData());
+                $exportRegistry = new ScheduledExportRegistry($adaptedGridConfigId, (string) $item->getData());
                 $exportRegistry->save();
             }
         }
