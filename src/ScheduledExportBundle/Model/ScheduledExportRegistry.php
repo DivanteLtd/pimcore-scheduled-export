@@ -74,14 +74,14 @@ class ScheduledExportRegistry extends AbstractModel
         return $this;
     }
 
-    public function setData(string $data): self
+    public function setData(?string $data): self
     {
         $this->data = $data;
 
         return $this;
     }
 
-    public function getData(): string
+    public function getData(): ?string
     {
         return $this->data;
     }
