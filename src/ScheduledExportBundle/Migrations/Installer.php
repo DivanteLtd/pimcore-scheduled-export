@@ -6,16 +6,13 @@ namespace Divante\ScheduledExportBundle\Migrations;
 
 use Divante\ScheduledExportBundle\Model\ScheduledExportRegistry;
 use Divante\ScheduledExportBundle\Model\ScheduledExportRegistry\Dao;
+use Doctrine\DBAL\DBALException;
 use Doctrine\DBAL\Migrations\Version;
 use Doctrine\DBAL\Schema\Schema;
 use Pimcore\Config;
-use Pimcore\Db\ConnectionInterface;
+use Pimcore\Db;
 use Pimcore\Extension\Bundle\Installer\MigrationInstaller;
-use Pimcore\Migrations\MigrationManager;
-use Pimcore\Model\User\Permission\Definition;
-use Pimcore\Model\User\Permission\Definition\Dao as DefinitionDao;
 use Pimcore\Model\WebsiteSetting\Listing;
-use Symfony\Component\HttpKernel\Bundle\BundleInterface;
 
 /**
  * Class Installer
@@ -23,6 +20,9 @@ use Symfony\Component\HttpKernel\Bundle\BundleInterface;
  */
 class Installer extends MigrationInstaller
 {
+    /**
+     * @throws DBALException
+     */
     public function migrateInstall(Schema $schema, Version $version): bool
     {
         $this->installDatabase();
@@ -30,6 +30,9 @@ class Installer extends MigrationInstaller
         return $this->isInstalled();
     }
 
+    /**
+     * @throws DBALException
+     */
     public function migrateUninstall(Schema $schema, Version $version): bool
     {
         $this->uninstallDatabase();
@@ -37,9 +40,12 @@ class Installer extends MigrationInstaller
         return !$this->isInstalled();
     }
 
+    /**
+     * @throws DBALException
+     */
     private function installDatabase(): void
     {
-        \Pimcore\Db::get()->query(
+        Db::get()->query(
             'CREATE TABLE IF NOT EXISTS `' . Dao::TABLE_NAME . '` (
                   `id` bigint(20) NOT NULL AUTO_INCREMENT,
                   `gridConfigId` varchar(255) NOT NULL,
@@ -68,25 +74,25 @@ class Installer extends MigrationInstaller
     {
     }
 
+    /**
+     * @throws DBALException
+     */
     private function uninstallDatabase(): void
     {
-        \Pimcore\Db::get()->query(
+        Db::get()->query(
             'DROP TABLE IF EXISTS `' . Dao::TABLE_NAME . '`;'
         );
 
         //TODO Remove permission ???
     }
 
-    /**
-     * @return bool
-     */
-    public function isInstalled()
+    public function isInstalled(): bool
     {
         $result = null;
 
         try {
             if (Config::getSystemConfig()) {
-                $result = \Pimcore\Db::get()->fetchAll("SHOW TABLES LIKE '" . Dao::TABLE_NAME . "';");
+                $result = Db::get()->fetchAll("SHOW TABLES LIKE '" . Dao::TABLE_NAME . "';");
             }
         } catch (\Exception $e) {
             return false;

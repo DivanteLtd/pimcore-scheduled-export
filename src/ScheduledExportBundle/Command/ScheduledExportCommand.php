@@ -5,31 +5,48 @@
  * @copyright Copyright (c) 2017 Divante Ltd. (https://divante.co)
  */
 
+declare(strict_types=1);
+
 namespace Divante\ScheduledExportBundle\Command;
 
 use Divante\ScheduledExportBundle\Export\Export;
+use Carbon\Carbon;
+use Elements\Bundle\ProcessManagerBundle\ExecutionTrait;
+use Elements\Bundle\ProcessManagerBundle\MetaDataFile;
 use Pimcore\Console\AbstractCommand;
 use Pimcore\Model\DataObject\AbstractObject;
-use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Input\InputOption;
-use Symfony\Component\DependencyInjection\ContainerAwareTrait;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Class ScheduledExportCommand
  *
  * @package Divante\ScheduledExportBundle\Command
  */
-class ScheduledExportCommand extends ContainerAwareCommand
+class ScheduledExportCommand extends AbstractCommand
 {
+    use ExecutionTrait;
+
+    protected static $defaultName = 'scheduled-export:start';
+
+    private $container;
+
+    public function __construct(ContainerInterface $container)
+    {
+        parent::__construct();
+
+        $this->container = $container;
+    }
+
     /**
      * {@inheritdoc}
      */
-    protected function configure()
+    protected function configure(): void
     {
         $this
-            ->setName('scheduled-export:start')
+            ->setName(self::$defaultName)
             ->setDescription('Run Scheduled Export.')
             ->setHelp(<<<EOT
 The <info>%command.name%</info> runs export of object based on predefined grid config.
@@ -96,44 +113,61 @@ EOT
                 'Divide file into parts with n lines'
             )
             ->addOption(
-                'preserve_process',
-                '',
-                InputOption::VALUE_OPTIONAL,
-                'Don\'t delete process'
-            )->addOption(
                 'types',
                 '',
                 InputOption::VALUE_OPTIONAL,
                 'Set what types should be exported; e. g. "object,variant"; defaults to default list settings'
-            )->addOption(
+            )
+            ->addOption(
                 'object-ids',
                 '',
                 InputOption::VALUE_OPTIONAL,
                 'Export only specified object ids'
-            )->addOption(
+            )
+            ->addOption(
                 'add_utf_bom',
                 '',
                 InputOption::VALUE_OPTIONAL,
                 'Add BOM (Byte Order Mark)'
             )
+            ->addOption(
+                'monitoring-item-id',
+                null,
+                InputOption::VALUE_REQUIRED,
+                'Contains the monitoring item if executed via the Pimcore backend'
+            )
         ;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
+        self::initProcessManager($input->getOption('monitoring-item-id'), ['autoCreate' => true]);
+
+        $monitoringItem = self::getMonitoringItem();
+
+        $metDataFileObject = MetaDataFile::getById('sample-id');
+
+        $start = Carbon::now();
+        if ($ts = $metDataFileObject->getData()['lastRun']) {
+            $lastRun = Carbon::createFromTimestamp($ts);
+        } else {
+            $lastRun = Carbon::now();
+        }
+
         AbstractObject::setHideUnpublished(false);
 
-        $container = $this->getContainer();
-
         $export = new Export(
-            $container,
-            $input,
-            $output
+            $monitoringItem,
+            $this->container,
+            $input
         );
 
-        $export->export();
+        $export->execute();
+
+        $monitoringItem->getLogger()->debug('Last Run: ' . $lastRun->format(Carbon::DEFAULT_TO_STRING_FORMAT));
+
+        $metDataFileObject->setData(['lastRun' => $start->getTimestamp()])->save();
+
+        $monitoringItem->setMessage('Job finished')->setCompleted();
     }
 }

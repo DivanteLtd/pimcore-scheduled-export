@@ -30,11 +30,10 @@ class Dao extends Model\Dao\PhpArrayTable
     /**
      * @return int
      */
-    public function getTotalCount()
+    public function getTotalCount(): int
     {
         $data = $this->db->fetchAll($this->model->getFilter(), $this->model->getOrder());
-        $amount = count($data);
 
-        return $amount;
+        return count($data);
     }
 }

@@ -1,16 +1,19 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Divante\ScheduledExportBundle\Event;
 
-use Pimcore\Model\DataObject\Concrete;
+use Symfony\Contracts\EventDispatcher\Event;
 
 /**
  * Class BatchExportedEvent
+ *
  * @package Divante\ScheduledExportBundle\Event
  */
-class BatchExportedEvent extends \Symfony\Component\EventDispatcher\Event
+class BatchExportedEvent extends Event
 {
-    const NAME = 'divante.scheduled_export.batch_exported';
+    public const NAME = 'divante.scheduled_export.batch_exported';
 
     /** @var string[] */
     private $objectsIds;

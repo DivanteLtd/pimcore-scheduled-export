@@ -12,12 +12,12 @@ use Pimcore\Model;
  */
 class Dao extends Model\Dao\AbstractDao
 {
-    const TABLE_NAME = 'bundle_scheduledexport_registry';
+    public const TABLE_NAME = 'bundle_scheduledexport_registry';
 
     /**
      * @throws Exception
      */
-    public function getById(int $id)
+    public function getById(int $id): void
     {
         $data = $this->db->fetchRow(
             'SELECT * FROM ' . $this->db->quoteIdentifier(self::TABLE_NAME) . ' WHERE id = ?',
@@ -36,7 +36,7 @@ class Dao extends Model\Dao\AbstractDao
     /**
      * @throws Exception
      */
-    public function getByGridConfigId(string $gridConfigId)
+    public function getByGridConfigId(string $gridConfigId): void
     {
         $data = $this->db->fetchRow(
             'SELECT * FROM ' . self::TABLE_NAME . ' WHERE gridConfigId = ?',
@@ -55,7 +55,7 @@ class Dao extends Model\Dao\AbstractDao
         $this->assignVariablesToModel($data);
     }
 
-    public function save()
+    public function save(): void
     {
         $dataRaw = $this->model->getObjectVars();
         $data = [];
@@ -74,7 +74,7 @@ class Dao extends Model\Dao\AbstractDao
         $this->model->clearDependentCache();
     }
 
-    public function delete()
+    public function delete(): void
     {
         $this->db->delete(self::TABLE_NAME, ['id' => $this->model->getId()]);
 

@@ -5,28 +5,28 @@
  * @copyright Copyright (c) 2017 Divante Ltd. (https://divante.co)
  */
 
+declare(strict_types=1);
+
 namespace Divante\ScheduledExportBundle\Export;
 
 use Divante\ScheduledExportBundle\Event\BatchExportedEvent;
 use Divante\ScheduledExportBundle\Event\ScheduledExportSavedEvent;
+use Divante\ScheduledExportBundle\Exceptions\ScheduledExportException;
 use Divante\ScheduledExportBundle\Model\ScheduledExportRegistry;
+use Elements\Bundle\ProcessManagerBundle\Model\MonitoringItem;
 use Exception;
+use Pimcore;
 use Pimcore\Bundle\AdminBundle\Controller\Admin\DataObject\DataObjectHelperController;
+use Pimcore\File;
 use Pimcore\Localization\LocaleService;
-use Pimcore\Logger;
+use Pimcore\Log\ApplicationLogger;
 use Pimcore\Model\Asset;
 use Pimcore\Model\DataObject\ClassDefinition;
 use Pimcore\Model\DataObject\Folder;
 use Pimcore\Model\DataObject\Listing;
 use Pimcore\Model\GridConfig;
 use Pimcore\Tool;
-use ProcessManagerBundle\Model\Process;
-use ProcessManagerBundle\ProcessManagerBundle;
-use ProcessManagerBundle\Repository\ProcessRepository;
-use Symfony\Component\Console\Input\Input;
-use Symfony\Component\Console\Output\Output;
 use Symfony\Component\DependencyInjection\ContainerInterface;
-use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Session\Attribute\AttributeBagInterface;
 
@@ -37,79 +37,152 @@ use Symfony\Component\HttpFoundation\Session\Attribute\AttributeBagInterface;
  */
 class Export
 {
-    const SETTINGS = '{"enableInheritance":true,"delimiter":"%delimiter%"}';
+    private const SETTINGS = '{"enableInheritance":true,"delimiter":"%delimiter%"}';
 
-    const INTERNAL_BATCH_SIZE = 1000;
+    private const INTERNAL_BATCH_SIZE = 1000;
+
+    /** @var MonitoringItem */
+    protected $monitoringItem;
+
+    /** @var ApplicationLogger */
+    protected $logger;
+
+    /** @var ContainerInterface */
+    private $container;
+
+    /** @var array */
+    protected $callbackSettings = [];
 
     private $gridConfig;
     private $objectsFolder;
     private $assetFolder;
     private $condition;
     private $fileName;
+
+    /** @var bool */
     private $timestamp;
+
     private $timestampFormat;
     private $importStartTimestamp;
-    private $container;
     private $delimiter;
     private $types;
 
-    /** @var Input $input */
-    private $input;
-    /** @var Output $output */
-    private $output;
-    /** @var Process $process */
-    private $process;
     /** @var Listing $listing */
     private $listing;
+
     /** @var bool $onlyChanges */
     private $onlyChanges;
+
     /** @var int $changesFromTimestamp */
     private $changesFromTimestamp;
-    /** @var ProcessRepository $processRepository */
-    private $processRepository;
+
     /** @var DataObjectHelperController $controller */
     private $controller;
 
+    /** @var int */
+    private $totalToExport = 0;
+
     /**
-     * Export constructor.
-     * @param string $gridConfig
-     * @param string $objectsFolder
-     * @param string $assetFolder
-     * @param ContainerInterface $container
-     * @param string|null $condition
-     * @param string|null $fileName
-     * @param string $timestamp
-     * @param string $onlyChanges
      * @throws Exception
      */
     public function __construct(
-        $container,
-        $input,
-        $output
+        MonitoringItem $monitoringItem,
+        ContainerInterface $container
     ) {
+        $this->setMonitoringItem($monitoringItem);
+        $this->setLogger($monitoringItem->getLogger());
+        $this->setCallbackSettings($monitoringItem->getCallbackSettings());
         $this->setContainer($container);
-        $this->setTimestamp((string) $input->getOption("timestamp"));
-        $this->setGridConfig($input->getOption("gridconfig"));
-        $this->setObjectsFolder($input->getOption("folder"));
-        $this->setOnlyChanges((string) $input->getOption("only-changes"));
-        $this->setAssetFolder($input->getOption("asset"));
-        $this->setCondition((string) $input->getOption("condition"));
-        $this->setTimestampFormat((string) $input->getOption("format"));
-        $this->setFilename(\Pimcore\File::getValidFilename((string) $input->getOption("filename")));
-        $this->setDelimiter((string) $input->getOption("delimiter"));
+
+
+        $this->assignCallbackSettings();
+
         $this->controller = new DataObjectHelperController();
         $this->controller->setContainer($this->container);
-        $this->input = $input;
-        $this->output = $output;
-        $this->process = new Process(
-            sprintf("Scheduled Export (%s) - %s", $this->objectsFolder, $this->gridConfig->getName()),
-            "Scheduled Export",
-            "Starting"
-        );
-        $this->process->setStarted(time());
-        $this->process->setStoppable(true);
-        $this->processRepository = $this->container->get('process_manager.repository.process');
-        $this->types = str_replace(' ', '', (string) $input->getOption("types"));
+
+        $this->logger->info(sprintf("Scheduled Export (%s) - %s", $this->objectsFolder, $this->gridConfig->getName()));
+    }
+
+    public function setMonitoringItem(MonitoringItem $monitoringItem): Export
+    {
+        $this->monitoringItem = $monitoringItem;
+
+        return $this;
+    }
+
+    public function getLogger(): ApplicationLogger
+    {
+        return $this->logger;
+    }
+
+    public function setLogger(ApplicationLogger $logger): Export
+    {
+        $this->logger = $logger;
+
+        return $this;
+    }
+
+    public function getCallbackSettings(): array
+    {
+        return $this->callbackSettings;
+    }
+
+    public function setCallbackSettings(array $callbackSettings): Export
+    {
+        $this->callbackSettings = $callbackSettings;
+
+        return $this;
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function execute(): void
+    {
+        if (!empty($this->getCallbackSettings()['OBJECT_IDS'])) {
+            $objectIds = explode(',', $this->getCallbackSettings()['OBJECT_IDS']);
+            $objectIds = array_map('intval', $objectIds);
+            $objectIds = array_chunk($objectIds, self::INTERNAL_BATCH_SIZE);
+        } else {
+            $this->prepareListing();
+            $objectIds = $this->getObjectIds();
+        }
+
+        $filenames = $this->exportToFilenames($objectIds);
+
+        $status = $this->monitoringItem::STATUS_FINISHED;
+        $statusMsg = 'Finished Export: ' . implode(' / ', $filenames);
+
+        if (!empty($filenames)) {
+            try {
+                $this->saveFileInAssets($filenames);
+                $this->monitoringItem->setWorkloadCompleted();
+                $this->updateExportRegistry();
+            } catch (Exception $exception) {
+                $status = $this->monitoringItem::STATUS_FAILED;
+                $statusMsg = sprintf("Error - %s", $exception->getMessage());
+            }
+        }
+
+        $this->monitoringItem->setStatus($status)->setMessage($statusMsg);
+    }
+
+    /**
+     * @throws Exception
+     */
+    private function assignCallbackSettings(): void
+    {
+        $this->logger->info(var_export($this->getCallbackSettings(), true));
+        $this->setTimestamp();
+        $this->setGridConfig();
+        $this->setObjectsFolder();
+        $this->setOnlyChanges();
+        $this->setAssetFolder();
+        $this->setCondition();
+        $this->setTimestampFormat();
+        $this->setFilename();
+        $this->setDelimiter();
+        $this->types = str_replace(' ', '', (string) $this->getCallbackSettings()['TYPES']);
     }
 
     /**
@@ -135,39 +208,29 @@ class Export
         return $exportRegistry;
     }
 
-    /**
-     * @param bool $timestamp
-     * @return void
-     */
-    public function setTimestamp(bool $timestamp): void
+    public function setTimestamp(): void
     {
-        if ($timestamp == "1") {
-            $this->timestamp = true;
-        } else {
-            $this->timestamp = false;
-        }
+        $this->timestamp = !empty($this->getCallbackSettings()['ADD_TIMESTAMP']);
     }
 
     /**
-     * @param string $gridId
-     * @return void
      * @throws Exception
      */
-    public function setGridConfig(string $gridId): void
+    public function setGridConfig(): void
     {
-        $this->gridConfig = GridConfig::getById($gridId);
+        $this->gridConfig = GridConfig::getById($this->getCallbackSettings()['GRID_CONFIG']);
     }
 
     /**
-     * @param string $onlyChanges
-     * @return void
+     * @throws Exception
      */
-    public function setOnlyChanges(string $onlyChanges): void
+    public function setOnlyChanges(): void
     {
         $exportRegistry = $this->getExportRegistry();
-        if ($onlyChanges === "1") {
+
+        if (!empty($this->getCallbackSettings()['ONLY_CHANGES'])) {
             $this->onlyChanges = true;
-            $this->changesFromTimestamp = strtotime($exportRegistry->getData());
+            $this->changesFromTimestamp = !empty($exportRegistry->getData()) ? strtotime($exportRegistry->getData()) : time();
         } else {
             $this->onlyChanges = false;
             $this->changesFromTimestamp = 0;
@@ -176,143 +239,67 @@ class Export
         $this->importStartTimestamp = time();
     }
 
-    /**
-     * @param string $objectsFolder
-     * @return void
-     */
-    public function setObjectsFolder($objectsFolder): void
+    public function setObjectsFolder(): void
     {
-        $this->objectsFolder = $objectsFolder;
+        $this->objectsFolder = $this->getCallbackSettings()['OBJECTS_FOLDER'];
     }
 
-    /**
-     * @param string $assetFolder
-     * @return void
-     */
-    public function setAssetFolder($assetFolder): void
+    public function setAssetFolder(): void
     {
-        $this->assetFolder = $assetFolder;
+        $this->assetFolder = $this->getCallbackSettings()['ASSET_FOLDER'];
     }
 
-    /**
-     * @param string|null $delimiter
-     * @return void
-     */
-    public function setDelimiter($delimiter): void
+    public function setDelimiter(): void
     {
-        if (!$delimiter) {
-            $delimiter = ";";
+        $delimiter = $this->getCallbackSettings()['DELIMITER'];
+
+        if (empty($delimiter)) {
+            $delimiter = ';';
         }
+
         $this->delimiter = $delimiter;
     }
 
-    /**
-     * @param string|null $condition
-     * @return void
-     */
-    public function setCondition($condition): void
+    public function setCondition(): void
     {
-        $this->condition = $condition;
+        $this->condition = (string) $this->getCallbackSettings()['CONDITION'];
     }
 
-    /**
-     * @param string $fileName
-     * @return void
-     */
-    public function setFileName(string $fileName): void
+    public function setFileName(): void
     {
-        if ($this->timestamp) {
-            if ($this->timestampFormat == "") {
-                $format = "-%s";
-            } else {
-                $format = $this->timestampFormat;
-            }
+        $fileName = File::getValidFilename((string) $this->getCallbackSettings()['ASSET_FILENAME']);
 
-            $fileName = $fileName . strftime($format);
+        if ($this->timestamp) {
+            $format = empty($this->timestampFormat) ? "-%s" : $this->timestampFormat;
+
+            $fileName .= strftime($format);
         }
 
         $this->fileName = $fileName;
     }
 
-    /**
-     * @param ContainerInterface $container
-     * @return void
-     */
-    public function setContainer($container): void
+    public function setContainer(ContainerInterface $container): void
     {
         $this->container = $container;
     }
 
-    /**
-     * @return string
-     */
     public function getTimestampFormat(): string
     {
         return $this->timestampFormat;
     }
 
-    /**
-     * @param mixed $timestampFormat
-     */
-    public function setTimestampFormat(string $timestampFormat): void
+    public function setTimestampFormat(): void
     {
-        $this->timestampFormat = $timestampFormat;
+        $this->timestampFormat = (string) $this->getCallbackSettings()['TIMESTAMP'];
     }
 
-    /**
-     * @return void
-     */
-    public function export(): void
-    {
-        $this->process->setStatus(ProcessManagerBundle::STATUS_RUNNING);
-        $this->process->save();
-
-        if ($this->input->getOption('object-ids')) {
-            $objectIds = explode(',', $this->input->getOption('object-ids'));
-            $objectIds = array_map('intval', $objectIds);
-            $objectIds = array_chunk($objectIds, self::INTERNAL_BATCH_SIZE);
-        } else {
-            $this->prepareListing();
-            $objectIds = $this->getObjectIds();
-        }
-        $filenames = [];
-
-        $this->process->setMessage("Starting");
-        $this->process->save();
-
-        $filenames = $this->exportToFilenames($objectIds, $filenames);
-
-        if (!empty($filenames)) {
-            $this->process->setMessage("Saving results");
-            $this->process->save();
-            try {
-                $this->saveFileInAssets($filenames);
-                $this->process->setStatus(ProcessManagerBundle::STATUS_COMPLETED);
-                $this->process->setMessage(sprintf("Done (%d objects exported)", $this->process->getProgress()));
-                $this->updateExportRegistry();
-            } catch (Exception $exception) {
-                $this->process->setStatus(ProcessManagerBundle::STATUS_FAILED);
-                $this->process->setMessage(sprintf("Error - %s", $exception->getMessage()));
-            }
-        }
-
-        if (!$this->input->getOption('preserve_process')) {
-            $this->process->delete();
-        } else {
-            $this->process->save();
-        }
-    }
-
-    /**
-     * @return Request
-     */
     protected function prepareRequest(array $objectIds, string $filename): Request
     {
         $request = Request::createFromGlobals();
 
         $request->request->set('fileHandle', $filename);
         $request->request->set('ids', $objectIds);
-        $request->request->set('settings', str_replace("%delimiter%", $this->delimiter, self::SETTINGS));
+        $request->request->set('settings', str_replace('%delimiter%', $this->delimiter, self::SETTINGS));
         $request->request->set('classId', $this->gridConfig->classId);
         $request->request->set('initial', '1');
         $request->request->set('fields', $this->prepareFields());
@@ -321,9 +308,6 @@ class Export
         return $request;
     }
 
-    /**
-     *
-     */
     protected function prepareListing(): void
     {
         $objectsFolder = Folder::getByPath($this->objectsFolder);
@@ -334,32 +318,28 @@ class Export
         $this->listing = new $className();
         $this->listing->setCondition($this->condition);
         $this->listing->addConditionParam(
-            "o_path LIKE ?",
-            rtrim($objectsFolder->getFullPath(), "/") . '/%',
-            "AND"
+            'o_path LIKE ?',
+            rtrim($objectsFolder->getFullPath(), '/') . '/%'
         );
-        $this->listing->addConditionParam("o_classId = ?", $this->gridConfig->classId, "AND");
+        $this->listing->addConditionParam('o_classId = ?', $this->gridConfig->classId);
 
         if ($this->changesFromTimestamp) {
-            $this->listing->addConditionParam("o_modificationDate >= ?", $this->changesFromTimestamp, "AND");
+            $this->listing->addConditionParam('o_modificationDate >= ?', $this->changesFromTimestamp);
         }
         $this->listing->setUnpublished(true);
         if ($this->types) {
             $this->listing->setObjectTypes(explode(',', $this->types));
         }
-        $this->process->setMessage("Counting objects to export");
-        $this->process->save();
-        $this->process->setTotal($this->listing->getCount());
-        $this->process->save();
+
+        $this->totalToExport = $this->listing->getCount();
+
+        $this->logger->info('Objects to export: ' . $this->totalToExport);
     }
 
-    /**
-     * @return array
-     */
     protected function getObjectIds(): array
     {
         $objectIds = [];
-        for ($i = 0; $i <= $this->process->getTotal(); $i = $i + self::INTERNAL_BATCH_SIZE) {
+        for ($i = 0; $i <= $this->totalToExport; $i += self::INTERNAL_BATCH_SIZE) {
             $this->listing->setOffset($i);
             $this->listing->setLimit(self::INTERNAL_BATCH_SIZE);
             $objectIds[] = $this->listing->loadIdList();
@@ -368,13 +348,10 @@ class Export
         return $objectIds;
     }
 
-    /**
-     * @return array
-     */
     protected function prepareFields(): array
     {
         /** @var GridConfig $fieldsRaw */
-        $fieldsRaw = json_decode($this->gridConfig->getConfig())->columns;
+        $fieldsRaw = json_decode($this->gridConfig->getConfig(), false)->columns;
 
         $this->setHelperColumnsInSession($fieldsRaw);
 
@@ -385,10 +362,6 @@ class Export
         return $fields;
     }
 
-    /**
-     * @param array $fieldsRaw
-     * @return void
-     */
     protected function setHelperColumnsInSession($fieldsRaw): void
     {
         $helperColumns = [];
@@ -398,24 +371,27 @@ class Export
             }
         }
 
-        Tool\Session::useSession(function (AttributeBagInterface $session) use ($helperColumns) {
-            $existingColumns = $session->get('helpercolumns', []);
-            $helperColumns = array_merge($helperColumns, $existingColumns);
-            $session->set('helpercolumns', $helperColumns);
-        }, 'pimcore_gridconfig');
+        Tool\Session::useSession(
+            function (AttributeBagInterface $session) use ($helperColumns) {
+                $existingColumns = $session->get('helpercolumns', []);
+                $helperColumns = array_merge($helperColumns, $existingColumns);
+                $session->set('helpercolumns', $helperColumns);
+            },
+            'pimcore_gridconfig'
+        );
     }
 
     /**
-     * @return void
+     * @throws Exception
      */
     protected function saveFileInAssets(array $filenames): void
     {
         $assetFolder = $this->assetFolder;
-        $content = "";
+        $content = '';
         $separator = "\r\n";
         $firstFile = true;
         foreach ($filenames as $filename) {
-            $tmpFile = PIMCORE_SYSTEM_TEMP_DIRECTORY . "/" . $filename . ".csv";
+            $tmpFile = PIMCORE_SYSTEM_TEMP_DIRECTORY . '/' . $filename . '.csv';
             $fileContent = file_get_contents($tmpFile);
             if (!$firstFile) {
                 $content .= $separator . preg_replace('/^.+\n/', '', $fileContent);
@@ -426,23 +402,24 @@ class Export
             $firstFile = false;
         }
 
-        if ($this->input->getOption('divide_file')) {
+        if (!empty($this->getCallbackSettings()['DIVIDE_FILE'])) {
+            $divide = (int) $this->getCallbackSettings()['DIVIDE_FILE'];
             $rows = explode($separator, $content);
             $header = array_shift($rows);
 
             $counter = 0;
             $fileCounter = 0;
-            $subContent = "";
+            $subContent = '';
             foreach ($rows as $row) {
                 $subContent .= $row . "\r\n";
-                if (++$counter % $this->input->getOption('divide_file') == 0) {
+                if (++$counter % $divide === 0) {
                     $this->saveAsset($assetFolder, $fileCounter, $header, $subContent);
-                    $subContent = "";
+                    $subContent = '';
                     $fileCounter++;
                 }
             }
 
-            if (strlen($subContent)) {
+            if ($subContent !== '') {
                 $this->saveAsset($assetFolder, $fileCounter, $header, $subContent);
             }
         } else {
@@ -451,18 +428,17 @@ class Export
     }
 
     /**
-     * @param string $assetFolder
-     * @return Asset
+     * @throws Exception
      */
-    protected function prepareAssetFile($assetFolder, ?int $index = null): Asset
+    protected function prepareAssetFile(string $assetFolder, ?int $index = null): Asset
     {
         if ($index) {
-            $filename = $this->fileName . "-" . $index;
+            $filename = $this->fileName . '-' . $index;
         } else {
             $filename = $this->fileName;
         }
 
-        $filename .= ".csv";
+        $filename .= '.csv';
 
         if (!$this->timestamp) {
             $assetFile = Asset::getByPath(Asset\Service::createFolderByPath($assetFolder) . '/' . $filename);
@@ -481,7 +457,7 @@ class Export
     }
 
     /**
-     *
+     * @throws Exception
      */
     private function updateExportRegistry(): void
     {
@@ -493,9 +469,6 @@ class Export
     }
 
     /**
-     * @param array $objectIds
-     * @param array $filenames
-     * @return array
      * @throws Exception
      */
     protected function exportToFilenames(array $objectIds): array
@@ -503,8 +476,18 @@ class Export
         $filenames = [];
         $localeService = new LocaleService();
         $dispatcher = $this->container->get('event_dispatcher');
+
+        if ($dispatcher === null) {
+            $this->logger->error('Event Dispatch is null - could not proceed!');
+            throw new ScheduledExportException('Event Dispatch is null - could not proceed!');
+        }
+
+        $this->monitoringItem->setTotalSteps(count($objectIds))->save();
+
+        $count = 0;
         foreach ($objectIds as $objectIdBatch) {
-            $filename = uniqid();
+            $count++;
+            $filename = uniqid('', true);
             $request = $this->prepareRequest($objectIdBatch, $filename);
             if (!count($request->request->get('ids'))) {
                 break;
@@ -515,25 +498,22 @@ class Export
             $dispatcher->dispatch(BatchExportedEvent::NAME, $event);
 
             $filenames[] = $filename;
-            $this->process = $this->processRepository->find($this->process->getId());
-            $this->process->progress(count($objectIdBatch));
-            $this->process->setMessage(
-                sprintf("Running (%d/%d)", $this->process->getProgress(), $this->process->getTotal())
-            );
-            $this->process->save();
-            if ($this->process->getStatus() == ProcessManagerBundle::STATUS_STOPPING) {
+
+            $batchCount = count($objectIdBatch);
+
+            $this->monitoringItem->setCurrentStep($count)->setMessage('Processing ' . $batchCount . ' export objects')->save();
+
+            if ($this->monitoringItem->getStatus() === MonitoringItem::STATUS_FAILED) {
                 foreach ($filenames as $filename) {
-                    $tmpFile = PIMCORE_SYSTEM_TEMP_DIRECTORY . "/" . $filename . ".csv";
+                    $tmpFile = PIMCORE_SYSTEM_TEMP_DIRECTORY . '/' . $filename . '.csv';
                     unlink($tmpFile);
                 }
-                $this->process->setStatus(ProcessManagerBundle::STATUS_STOPPED);
-                $this->process->setMessage("Stopped by user");
-                $this->process->save();
                 break;
             }
 
-            \Pimcore::collectGarbage();
+            Pimcore::collectGarbage();
         }
+
         return $filenames;
     }
 
@@ -548,15 +528,16 @@ class Export
     {
         $assetFile = $this->prepareAssetFile($assetFolder, $fileCounter);
         $data = '';
-        if ($this->input->getOption('add_utf_bom')) {
+        if (!empty($this->getCallbackSettings()['ADD_UTF_BOM'])) {
             $data = chr(0xEF) . chr(0xBB) . chr(0xBF);
         }
 
         if ($header) {
-            $data = $data . $header . "\r\n" . $content;
+            $data .= $header . "\r\n" . $content;
         } else {
-            $data = $data . $content;
+            $data .= $content;
         }
+
         $assetFile->setData($data);
         $assetFilename = Asset\Service::getUniqueKey($assetFile);
         $assetFile->setFilename($assetFilename);
@@ -566,6 +547,9 @@ class Export
             $this->gridConfig->getName()
         )]);
         $event = new ScheduledExportSavedEvent($assetFilename);
-        $this->container->get('event_dispatcher')->dispatch(ScheduledExportSavedEvent::NAME, $event);
+        $eventDispatcher = $this->container->get('event_dispatcher');
+        if ($eventDispatcher !== null) {
+            $eventDispatcher->dispatch(ScheduledExportSavedEvent::NAME, $event);
+        }
     }
 }

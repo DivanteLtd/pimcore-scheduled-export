@@ -5,6 +5,8 @@
  * @copyright Copyright (c) 2017 Divante Ltd. (https://divante.co)
  */
 
+declare(strict_types=1);
+
 namespace Divante\ScheduledExportBundle;
 
 use Divante\ScheduledExportBundle\Migrations\Installer;
@@ -27,7 +29,7 @@ class DivanteScheduledExportBundle extends AbstractPimcoreBundle
     /**
      * {@inheritdoc}
      */
-    protected function getComposerPackageName()
+    protected function getComposerPackageName(): string
     {
         return 'divante-ltd/pimcore-scheduled-export';
     }
@@ -35,7 +37,7 @@ class DivanteScheduledExportBundle extends AbstractPimcoreBundle
     /**
      * {@inheritdoc}
      */
-    public function getJsPaths()
+    public function getJsPaths(): array
     {
         return [
             '/bundles/divantescheduledexport/js/startup.js',
@@ -46,7 +48,7 @@ class DivanteScheduledExportBundle extends AbstractPimcoreBundle
     /**
      * {@inheritdoc}
      */
-    public function getCssPaths()
+    public function getCssPaths(): array
     {
         return [
             '/bundles/divantescheduledexport/css/importdefinition.css',
