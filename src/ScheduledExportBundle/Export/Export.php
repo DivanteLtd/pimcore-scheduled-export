@@ -131,7 +131,7 @@ class Export
             $exportRegistry->setGridConfigId($adaptedGridConfigId);
             $exportRegistry->save();
         }
-        
+
         return $exportRegistry;
     }
 
@@ -427,18 +427,17 @@ class Export
         }
 
         if ($this->input->getOption('divide_file')) {
-            $line = strtok($content, $separator);
-            $header = $line;
+            $rows = explode($separator, $content);
+
+            $header = $rows[0];
+            array_shift($rows);
+
             $counter = 0;
             $fileCounter = 0;
             $subContent = "";
-            while ($line !== false) {
-                $line = strtok($separator);
-                if ($line !== false) {
-                    $subContent .= $line . "\r\n";
-                }
-                $counter++;
-                if ($counter % $this->input->getOption('divide_file') == 0) {
+            foreach ($rows as $row) {
+                $subContent .= $row . "\r\n";
+                if (++$counter % $this->input->getOption('divide_file') == 0) {
                     $this->saveAsset($assetFolder, $fileCounter, $header, $subContent);
                     $subContent = "";
                     $fileCounter++;
