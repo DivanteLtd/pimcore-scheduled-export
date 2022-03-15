@@ -28,7 +28,7 @@ jobs:
 
     - name: PHP Copy/Paste Detector
       run: |
-        composer global require "sebastian/phpcpd":"^4.1" \
+        composer global require "sebastian/phpcpd":"^6.0" \
           --no-interaction --prefer-dist --ignore-platform-reqs --quiet
         /home/runner/.composer/vendor/bin/phpcpd src
 
