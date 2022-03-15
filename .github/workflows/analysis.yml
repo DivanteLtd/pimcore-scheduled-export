@@ -34,6 +34,6 @@ jobs:
 
     - name: PHP DocBlock Checker
       run: |
-        composer global require "dancryer/php-docblock-checker" \
+        composer global require "divante-ltd/php-docblock-checker" \
           --no-interaction --prefer-dist --ignore-platform-reqs --quiet
         /home/runner/.composer/vendor/bin/phpdoccheck --directory=src
