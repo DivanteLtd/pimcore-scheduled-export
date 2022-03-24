@@ -428,9 +428,7 @@ class Export
 
         if ($this->input->getOption('divide_file')) {
             $rows = explode($separator, $content);
-
-            $header = $rows[0];
-            array_shift($rows);
+            $header = array_shift($rows);
 
             $counter = 0;
             $fileCounter = 0;
