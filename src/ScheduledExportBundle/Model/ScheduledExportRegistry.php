@@ -7,8 +7,6 @@ namespace Divante\ScheduledExportBundle\Model;
 use Divante\ScheduledExportBundle\Model\ScheduledExportRegistry\Dao;
 use Exception;
 use Pimcore\Cache;
-use Pimcore\Model\Element\ElementInterface;
-use Pimcore\Model\Element\Service;
 use Pimcore\Model\AbstractModel;
 use Pimcore\Cache\Runtime;
 
@@ -92,7 +90,7 @@ class ScheduledExportRegistry extends AbstractModel
         return $gridConfigId . '~~~' . self::WS_NAME;
     }
 
-    public function clearDependentCache()
+    public function clearDependentCache(): void
     {
         Cache::clearTag('scheduled_export_exports');
     }

@@ -1,32 +1,28 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Divante\ScheduledExportBundle\Event;
 
-use Pimcore\Model\DataObject\Concrete;
+use Symfony\Contracts\EventDispatcher\Event;
 
 /**
  * Class ScheduledExportSavedEvent
+ *
  * @package Divante\ScheduledExportBundle\Event
  */
-class ScheduledExportSavedEvent extends \Symfony\Component\EventDispatcher\Event
+class ScheduledExportSavedEvent extends Event
 {
-    const NAME = 'divante.scheduled_export.scheduled_export_saved';
+    public const NAME = 'divante.scheduled_export.scheduled_export_saved';
 
     /** @var string */
     private $filename;
 
-    /**
-     * ScheduledExportSavedEvent constructor.
-     * @param string[] $filenames
-     */
     public function __construct(string $filename)
     {
         $this->filename = $filename;
     }
 
-    /**
-     * @return string
-     */
     public function getFilename(): string
     {
         return $this->filename;
