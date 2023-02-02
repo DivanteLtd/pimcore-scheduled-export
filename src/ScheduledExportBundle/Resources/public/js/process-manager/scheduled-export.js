@@ -1,6 +1,6 @@
 
-pimcore.registerNS("pimcore.plugin.DivanteScheduledExportBundle.processmanager.executor.callback.scheduledexport");
-pimcore.plugin.DivanteScheduledExportBundle.processmanager.executor.callback.scheduledexport = Class.create(pimcore.plugin.processmanager.executor.callback.abstractCallback, {
+pimcore.registerNS("pimcore.plugin.processmanager.executor.callback.scheduledExport");
+pimcore.plugin.processmanager.executor.callback.scheduledExport = Class.create(pimcore.plugin.processmanager.executor.callback.abstractCallback, {
     name : 'scheduledExport',
 
     initialize : function(){

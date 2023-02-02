@@ -15,8 +15,7 @@ class ScheduledExportSavedEvent extends Event
 {
     public const NAME = 'divante.scheduled_export.scheduled_export_saved';
 
-    /** @var string */
-    private $filename;
+    private string $filename;
 
     public function __construct(string $filename)
     {

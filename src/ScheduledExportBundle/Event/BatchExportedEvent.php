@@ -6,17 +6,12 @@ namespace Divante\ScheduledExportBundle\Event;
 
 use Symfony\Contracts\EventDispatcher\Event;
 
-/**
- * Class BatchExportedEvent
- *
- * @package Divante\ScheduledExportBundle\Event
- */
 class BatchExportedEvent extends Event
 {
     public const NAME = 'divante.scheduled_export.batch_exported';
 
     /** @var string[] */
-    private $objectsIds;
+    private array $objectsIds;
 
     /**
      * BatchExportedEvent constructor.

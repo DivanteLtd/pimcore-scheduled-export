@@ -27,6 +27,8 @@ use Pimcore\Model\DataObject\Listing;
 use Pimcore\Model\GridConfig;
 use Pimcore\Tool;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\EventDispatcher\Debug\TraceableEventDispatcher;
+use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Session\Attribute\AttributeBagInterface;
 
@@ -53,7 +55,7 @@ class Export
     /** @var array */
     protected $callbackSettings = [];
 
-    private $gridConfig;
+    private ?GridConfig $gridConfig;
     private $objectsFolder;
     private $assetFolder;
     private $condition;
@@ -218,7 +220,8 @@ class Export
      */
     public function setGridConfig(): void
     {
-        $this->gridConfig = GridConfig::getById($this->getCallbackSettings()['GRID_CONFIG']);
+        $callbackSettings = $this->getCallbackSettings();
+        $this->gridConfig = !empty($callbackSettings['GRID_CONFIG']) ? GridConfig::getById($callbackSettings['GRID_CONFIG']) : null;
     }
 
     /**
@@ -300,7 +303,7 @@ class Export
         $request->request->set('fileHandle', $filename);
         $request->request->set('ids', $objectIds);
         $request->request->set('settings', str_replace('%delimiter%', $this->delimiter, self::SETTINGS));
-        $request->request->set('classId', $this->gridConfig->classId);
+        $request->request->set('classId', $this->gridConfig->getClassId());
         $request->request->set('initial', '1');
         $request->request->set('fields', $this->prepareFields());
         $request->request->set('language', 'en_GB');
@@ -312,7 +315,7 @@ class Export
     {
         $objectsFolder = Folder::getByPath($this->objectsFolder);
         $className = "\\Pimcore\\Model\\DataObject\\"
-            . ucfirst(ClassDefinition::getById($this->gridConfig->classId)->getName())
+            . ucfirst(ClassDefinition::getById($this->gridConfig->getClassId())->getName())
             . "\\Listing";
 
         $this->listing = new $className();
@@ -321,7 +324,7 @@ class Export
             'o_path LIKE ?',
             rtrim($objectsFolder->getFullPath(), '/') . '/%'
         );
-        $this->listing->addConditionParam('o_classId = ?', $this->gridConfig->classId);
+        $this->listing->addConditionParam('o_classId = ?', $this->gridConfig->getClassId());
 
         if ($this->changesFromTimestamp) {
             $this->listing->addConditionParam('o_modificationDate >= ?', $this->changesFromTimestamp);
@@ -390,9 +393,17 @@ class Export
         $content = '';
         $separator = "\r\n";
         $firstFile = true;
+
+        $storage = Tool\Storage::get('temp');
+
         foreach ($filenames as $filename) {
             $tmpFile = PIMCORE_SYSTEM_TEMP_DIRECTORY . '/' . $filename . '.csv';
-            $fileContent = file_get_contents($tmpFile);
+            $fileContent = '';
+            try {
+                $fileContent = $storage->read($filename . '.csv');
+            } catch (\Exception $e) {
+            }
+
             if (!$firstFile) {
                 $content .= $separator . preg_replace('/^.+\n/', '', $fileContent);
             } else {
@@ -475,6 +486,7 @@ class Export
     {
         $filenames = [];
         $localeService = new LocaleService();
+        /** @var EventDispatcher $dispatcher */
         $dispatcher = $this->container->get('event_dispatcher');
 
         if ($dispatcher === null) {
@@ -485,6 +497,8 @@ class Export
         $this->monitoringItem->setTotalSteps(count($objectIds))->save();
 
         $count = 0;
+        $storage = Tool\Storage::get('temp');
+
         foreach ($objectIds as $objectIdBatch) {
             $count++;
             $filename = uniqid('', true);
@@ -493,9 +507,11 @@ class Export
                 break;
             }
 
-            $this->controller->doExportAction($request, $localeService);
+            $storage->write($filename . '.csv', '');
+
+            $this->controller->doExportAction($request, $localeService, $dispatcher);
             $event = new BatchExportedEvent($objectIdBatch ?? []);
-            $dispatcher->dispatch(BatchExportedEvent::NAME, $event);
+            $dispatcher->dispatch($event, BatchExportedEvent::NAME);
 
             $filenames[] = $filename;
 
@@ -527,6 +543,7 @@ class Export
     protected function saveAsset($assetFolder, ?int $fileCounter, ?string $header, string $content): void
     {
         $assetFile = $this->prepareAssetFile($assetFolder, $fileCounter);
+
         $data = '';
         if (!empty($this->getCallbackSettings()['ADD_UTF_BOM'])) {
             $data = chr(0xEF) . chr(0xBB) . chr(0xBF);
@@ -539,17 +556,26 @@ class Export
         }
 
         $assetFile->setData($data);
+
         $assetFilename = Asset\Service::getUniqueKey($assetFile);
         $assetFile->setFilename($assetFilename);
-        $assetFile->save(['versionNote' => sprintf(
-            "Scheduled Export on folder (%s), gridconfig -  %s",
-            $this->objectsFolder,
-            $this->gridConfig->getName()
-        )]);
-        $event = new ScheduledExportSavedEvent($assetFilename);
-        $eventDispatcher = $this->container->get('event_dispatcher');
-        if ($eventDispatcher !== null) {
-            $eventDispatcher->dispatch(ScheduledExportSavedEvent::NAME, $event);
+
+        try {
+            $assetFile->save([
+                'versionNote' => sprintf(
+                    "Scheduled Export on folder (%s), gridconfig -  %s",
+                    $this->objectsFolder,
+                    $this->gridConfig->getName()
+                )
+            ]);
+        } catch (\Exception $e) {
+            \Pimcore\Log\ApplicationLogger::getInstance()->warning('Error on saving Asset "' . $assetFilename . '" : ' . $e->getMessage());
         }
+
+        $event = new ScheduledExportSavedEvent($assetFilename);
+
+        /** @var TraceableEventDispatcher $eventDispatcher */
+        $eventDispatcher = $this->container->get('event_dispatcher');
+        $eventDispatcher?->dispatch($event, ScheduledExportSavedEvent::NAME);
     }
 }

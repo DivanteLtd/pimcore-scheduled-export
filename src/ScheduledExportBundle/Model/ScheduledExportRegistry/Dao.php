@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Divante\ScheduledExportBundle\Model\ScheduledExportRegistry;
 
+use Divante\ScheduledExportBundle\DivanteScheduledExportBundle;
 use Exception;
+use Pimcore\Db\Helper;
 use Pimcore\Model;
 
 /**
@@ -12,15 +14,13 @@ use Pimcore\Model;
  */
 class Dao extends Model\Dao\AbstractDao
 {
-    public const TABLE_NAME = 'bundle_scheduledexport_registry';
-
     /**
      * @throws Exception
      */
     public function getById(int $id): void
     {
-        $data = $this->db->fetchRow(
-            'SELECT * FROM ' . $this->db->quoteIdentifier(self::TABLE_NAME) . ' WHERE id = ?',
+        $data = $this->db->fetchAssociative(
+            'SELECT * FROM ' . $this->db->quoteIdentifier(DivanteScheduledExportBundle::TABLE_NAME) . ' WHERE id = ?',
             [
                 $id,
             ]
@@ -38,8 +38,8 @@ class Dao extends Model\Dao\AbstractDao
      */
     public function getByGridConfigId(string $gridConfigId): void
     {
-        $data = $this->db->fetchRow(
-            'SELECT * FROM ' . self::TABLE_NAME . ' WHERE gridConfigId = ?',
+        $data = $this->db->fetchAssociative(
+            'SELECT * FROM ' . DivanteScheduledExportBundle::TABLE_NAME . ' WHERE gridConfigId = ?',
             [
                 $gridConfigId,
             ]
@@ -64,7 +64,7 @@ class Dao extends Model\Dao\AbstractDao
             $data[$key] = $value;
         }
 
-        $this->db->insertOrUpdate(self::TABLE_NAME, $data);
+        Helper::insertOrUpdate($this->db, DivanteScheduledExportBundle::TABLE_NAME, $data);
 
         $lastInsertId = (int) $this->db->lastInsertId();
         if (empty($this->model->getId()) && $lastInsertId) {
@@ -76,7 +76,7 @@ class Dao extends Model\Dao\AbstractDao
 
     public function delete(): void
     {
-        $this->db->delete(self::TABLE_NAME, ['id' => $this->model->getId()]);
+        $this->db->delete(DivanteScheduledExportBundle::TABLE_NAME, ['id' => $this->model->getId()]);
 
         $this->model->clearDependentCache();
     }

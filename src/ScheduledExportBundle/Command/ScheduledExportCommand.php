@@ -139,7 +139,7 @@ EOT
         ;
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         self::initProcessManager($input->getOption('monitoring-item-id'), ['autoCreate' => true]);
 
@@ -148,26 +148,33 @@ EOT
         $metDataFileObject = MetaDataFile::getById('sample-id');
 
         $start = Carbon::now();
-        if ($ts = $metDataFileObject->getData()['lastRun']) {
-            $lastRun = Carbon::createFromTimestamp($ts);
+        if (!empty($metDataFileObject->getData()['lastRun'])) {
+            $lastRun = Carbon::createFromTimestamp($metDataFileObject->getData()['lastRun']);
         } else {
             $lastRun = Carbon::now();
         }
 
         AbstractObject::setHideUnpublished(false);
 
-        $export = new Export(
-            $monitoringItem,
-            $this->container,
-            $input
-        );
+        $result = 0;
+        try {
+            $export = new Export(
+                $monitoringItem,
+                $this->container,
+            );
 
-        $export->execute();
+            $export->execute();
+        } catch (\Exception $e) {
+            $result = 1;
+            $monitoringItem->setMessage($e->getMessage(), \Monolog\Logger::ERROR)->save();
+            $monitoringItem->setMessage($e->getTraceAsString(), \Monolog\Logger::ERROR)->save();
+            $monitoringItem->setHasCriticalError(true);
+        } finally {
+            $monitoringItem->getLogger()->debug('Last Run: ' . $lastRun->format(Carbon::DEFAULT_TO_STRING_FORMAT));
+            $metDataFileObject->setData(['lastRun' => $start->getTimestamp()])->save();
+            $monitoringItem->setMessage('Job finished')->setCompleted();
+        }
 
-        $monitoringItem->getLogger()->debug('Last Run: ' . $lastRun->format(Carbon::DEFAULT_TO_STRING_FORMAT));
-
-        $metDataFileObject->setData(['lastRun' => $start->getTimestamp()])->save();
-
-        $monitoringItem->setMessage('Job finished')->setCompleted();
+        return $result;
     }
 }

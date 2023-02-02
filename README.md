@@ -44,7 +44,7 @@ Enable the Bundle:
 
 ## Requirements
 
-* Pimcore 6.3
+* Pimcore 10 (X)
 * [ProcessManager](https://github.com/elements-at/ProcessManager)
 
 ## Usage
