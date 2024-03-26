@@ -512,6 +512,7 @@ class Export
             $storage->write($filename . '.csv', '');
 
             $this->controller->doExportAction($request, $localeService, $dispatcher);
+
             $event = new BatchExportedEvent($objectIdBatch ?? []);
             $dispatcher->dispatch($event, BatchExportedEvent::NAME);
 

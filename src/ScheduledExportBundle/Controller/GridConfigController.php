@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace Divante\ScheduledExportBundle\Controller;
 
 use Exception;
-use Pimcore\Bundle\AdminBundle\Controller\AdminController;
 use Pimcore\Bundle\AdminBundle\HttpFoundation\JsonResponse;
+use Pimcore\Controller\Traits\JsonHelperTrait;
+use Pimcore\Controller\UserAwareController;
 use Pimcore\Model\DataObject\ClassDefinition;
 use Pimcore\Model\GridConfig;
 use Pimcore\Model\User;
@@ -20,8 +21,10 @@ use Symfony\Component\Routing\Annotation\Route;
  *
  * @package Divante\ScheduledExportBundle\Controller
  */
-class GridConfigController extends AdminController
+class GridConfigController extends UserAwareController
 {
+    use JsonHelperTrait;
+
     /** @var string True indicator for share globally */
     private const SHARE_GLOBALLY_TRUE = '1';
 
@@ -34,10 +37,10 @@ class GridConfigController extends AdminController
      */
     public function getListAction(Request $request) : JsonResponse
     {
-        $user = $this->getAdminUser();
+        $user = $this->getPimcoreUser();
 
         $gridConfigs = new GridConfig\Listing();
-        $gridConfigs->setCondition('ownerId = ? or shareGlobally = ?', [$user->getId(), self::SHARE_GLOBALLY_TRUE]);
+        $gridConfigs->setCondition('ownerId = ? or shareGlobally = ?', [$user?->getId(), self::SHARE_GLOBALLY_TRUE]);
         $gridConfigs->load();
 
         $result = [];
@@ -58,6 +61,6 @@ class GridConfigController extends AdminController
             ];
         }
 
-        return $this->adminJson(['success' => true, 'result' => $result]);
+        return $this->jsonResponse(['success' => true, 'result' => $result]);
     }
 }
