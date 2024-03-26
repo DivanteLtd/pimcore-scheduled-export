@@ -89,7 +89,8 @@ class Export
      */
     public function __construct(
         MonitoringItem $monitoringItem,
-        ContainerInterface $container
+        ContainerInterface $container,
+        Pimcore\Serializer\Serializer $serializer
     ) {
         $this->setMonitoringItem($monitoringItem);
         $this->setLogger($monitoringItem->getLogger());
@@ -101,6 +102,7 @@ class Export
 
         $this->controller = new DataObjectHelperController();
         $this->controller->setContainer($this->container);
+        $this->controller->setPimcoreSerializer($serializer);
 
         $this->logger->info(sprintf("Scheduled Export (%s) - %s", $this->objectsFolder, $this->gridConfig->getName()));
     }

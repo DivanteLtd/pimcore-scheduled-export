@@ -25,10 +25,10 @@ class DivanteScheduledExportExtension extends ConfigurableExtension implements P
     /**
      * {@inheritdoc}
      */
-    public function loadInternal(array $configs, ContainerBuilder $container): void
+    public function loadInternal(array $mergedConfig, ContainerBuilder $container): void
     {
         $configuration = new Configuration();
-        $config = $this->processConfiguration($configuration, $configs);
+        $config = $this->processConfiguration($configuration, $mergedConfig);
 
         $loader = new Loader\YamlFileLoader($container, new FileLocator(__DIR__ . '/../Resources/config'));
         $loader->load('services.yaml');

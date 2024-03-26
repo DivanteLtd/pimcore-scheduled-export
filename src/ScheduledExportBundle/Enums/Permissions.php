@@ -6,7 +6,7 @@ namespace Divante\ScheduledExportBundle\Enums;
 
 class Permissions
 {
-    public const VIEW = "plugin_scheduledexport_permission_view";
-    public const EXECUTE = "plugin_scheduledexport_permission_execute";
-    public const CONFIGURE = "plugin_scheduledexport_permission_configure";
+    public const VIEW = 'plugin_scheduledexport_permission_view';
+    public const EXECUTE = 'plugin_scheduledexport_permission_execute';
+    public const CONFIGURE = 'plugin_scheduledexport_permission_configure';
 }

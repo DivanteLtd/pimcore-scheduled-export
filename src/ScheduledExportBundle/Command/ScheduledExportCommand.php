@@ -15,6 +15,7 @@ use Elements\Bundle\ProcessManagerBundle\ExecutionTrait;
 use Elements\Bundle\ProcessManagerBundle\MetaDataFile;
 use Pimcore\Console\AbstractCommand;
 use Pimcore\Model\DataObject\AbstractObject;
+use Pimcore\Serializer\Serializer;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -31,7 +32,7 @@ class ScheduledExportCommand extends AbstractCommand
 
     protected static $defaultName = 'scheduled-export:start';
 
-    private $container;
+    private ContainerInterface $container;
 
     public function __construct(ContainerInterface $container)
     {
@@ -156,17 +157,21 @@ EOT
 
         AbstractObject::setHideUnpublished(false);
 
+        $pimcoreSerializer = new Serializer();
         $result = 0;
         try {
             $export = new Export(
                 $monitoringItem,
                 $this->container,
+                $pimcoreSerializer
             );
 
             $export->execute();
         } catch (\Exception $e) {
             $result = 1;
+            $monitoringItem->getLogger()->error('Error on ScheduledExportCommand: ' . $e->getMessage());
             $monitoringItem->setMessage($e->getMessage(), \Monolog\Logger::ERROR)->save();
+            $monitoringItem->getLogger()->debug($e->getTraceAsString());
             $monitoringItem->setMessage($e->getTraceAsString(), \Monolog\Logger::ERROR)->save();
             $monitoringItem->setHasCriticalError(true);
         } finally {
