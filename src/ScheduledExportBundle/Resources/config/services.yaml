@@ -18,12 +18,16 @@ services:
       resource: '../../Command/*'
       tags: ['console.command']
 
-    scheduledexport.process_manager.process:
-        class: Divante\ScheduledExportBundle\ProcessManager\ScheduledExportProcess
-        tags:
-            - { name: 'process_manager.process', type: 'scheduledexport', form-type: Divante\ScheduledExportBundle\Form\Type\ProcessManager\ScheduledExportType }
-
-    Divante\ScheduledExportBundle\Migrations\Installer:
+    Divante\ScheduledExportBundle\Installer:
       public: true
       arguments:
         $bundle: "@=service('kernel').getBundle('DivanteScheduledExportBundle')"
+
+    scheduledExport:
+        class : Elements\Bundle\ProcessManagerBundle\Executor\Callback\General
+        arguments :
+            $name: "scheduledExport"
+            $extJsClass: "pimcore.plugin.processmanager.executor.callback.scheduledExport"
+            $jsFile: "/bundles/divantescheduledexport/js/process-manager/scheduled-export.js"
+        tags:
+            - { name: "elements.processManager.executorCallbackClasses" }

@@ -5,6 +5,8 @@
  * @copyright Copyright (c) 2017 Divante Ltd. (https://divante.co)
  */
 
+declare(strict_types=1);
+
 namespace Divante\ScheduledExportBundle\DependencyInjection;
 
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
@@ -20,10 +22,10 @@ class Configuration implements ConfigurationInterface
     /**
      * {@inheritdoc}
      */
-    public function getConfigTreeBuilder()
+    public function getConfigTreeBuilder(): TreeBuilder
     {
-        $treeBuilder = new TreeBuilder();
-        $rootNode = $treeBuilder->root('divante_scheduled_export');
+        $treeBuilder = new TreeBuilder('divante_scheduled_export');
+        $rootNode = $treeBuilder->getRootNode();
 
         // Here you should define the parameters that are allowed to
         // configure your bundle. See the documentation linked above for

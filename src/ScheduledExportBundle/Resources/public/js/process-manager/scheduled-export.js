@@ -1,204 +1,211 @@
-/**
- * @date      05/01/18 13:57
- * @author    Anna Zavodian <azavodian@divante.pl>
- * @copyright Copyright (c) 2017 Divante Ltd. (https://divante.co)
- */
 
-document.addEventListener('processmanager.ready', function() {
-    processmanager.executable.types.scheduledexport = Class.create(pimcore.plugin.processmanager.executable.abstractType, {
-        getItems: function () {
-            var storedThis = this;
-            return [
+pimcore.registerNS("pimcore.plugin.processmanager.executor.callback.scheduledExport");
+pimcore.plugin.processmanager.executor.callback.scheduledExport = Class.create(pimcore.plugin.processmanager.executor.callback.abstractCallback, {
+    name : 'scheduledExport',
+
+    initialize : function(){
+        this.settings.windowHeight = 600;
+    },
+
+    getFieldValue : function(fieldName){
+        var value = '';
+        if (this.rec) {
+            value = this.rec.get('extJsSettings').values[fieldName];
+        }
+        return value;
+    },
+
+    getFormItems : function () {
+        var storedThis = this;
+
+        return [
+            {
+                xtype: 'textfield',
+                fieldLabel: t('scheduledexport_objects_folder'),
+                name: 'OBJECTS_FOLDER',
+                value: this.getFieldValue('OBJECTS_FOLDER'),
+                cls: 'input_drop_target',
+                canDrop: function(data)
                 {
-                    xtype: 'textfield',
-                    fieldLabel: t('scheduledexport_objects_folder'),
-                    name: 'objects_folder',
-                    value: this.data.settings.objects_folder,
-                    cls: 'input_drop_target',
-                    canDrop: function(data)
-                    {
-                        return storedThis.isObjectFolder(data.records[0].data);
-                    },
-                    listeners: {
-                        'render': function (el) {
-                            new Ext.dd.DropZone(el.getEl(), {
-                                reference: this,
-                                ddGroup: 'element',
-                                getTargetFromEvent: function (e) {
-                                    return this.getEl();
-                                }.bind(el),
-
-                                onNodeOver: function (target, dd, e, data) {
-                                    if (this.canDrop(data)) {
-                                        return Ext.dd.DropZone.prototype.dropAllowed;
-                                    } else {
-                                        return Ext.dd.DropZone.prototype.dropNotAllowed;
-                                    }
-                                }.bind(el),
-
-                                onNodeDrop: function (target, dd, e, data) {
-                                    if (this.canDrop(data)) {
-                                        this.setValue(data.records[0].data.path);
-                                        return true;
-                                    }
-                                    return false;
-                                }.bind(el)
-                            });
-                        },
-                        'change': function (el) {
-                            console.log(el);
-                        }
-                    },
-                    allowBlank: false
-                }, {
-                    xtype: 'combo',
-                    fieldLabel: t('scheduledexport_grid_config'),
-                    name: 'grid_config',
-                    displayField: 'name',
-                    valueField: 'id',
-                    store: this.getGridConfig(),
-                    emptyText: t('scheduledexport_select_grid_config'),
-                    value: this.data.settings.grid_config,
-                    allowBlank: false
-                }, {
-                    xtype: 'textfield',
-                    fieldLabel: t('scheduledexport_asset_folder'),
-                    name: 'asset_folder',
-                    value: this.data.settings.asset_folder,
-                    cls: 'input_drop_target',
-                    canDrop: function(data)
-                    {
-                        return storedThis.isAssetFolder(data.records[0].data);
-                    },
-                    listeners: {
-                        'render': function (el) {
-                            new Ext.dd.DropZone(el.getEl(), {
-                                reference: this,
-                                ddGroup: 'element',
-                                getTargetFromEvent: function (e) {
-                                    return this.getEl();
-                                }.bind(el),
-
-                                onNodeOver: function (target, dd, e, data) {
-                                    if (this.canDrop(data)) {
-                                        return Ext.dd.DropZone.prototype.dropAllowed;
-                                    } else {
-                                        return Ext.dd.DropZone.prototype.dropNotAllowed;
-                                    }
-                                }.bind(el),
-
-                                onNodeDrop: function (target, dd, e, data) {
-                                    if (this.canDrop(data)) {
-                                        this.setValue(data.records[0].data.path);
-                                        return true;
-                                    }
-                                    return false;
-                                }.bind(el)
-                            });
-                        }
-                    },
-                    allowBlank: false
-                }, {
-                    xtype: 'textfield',
-                    fieldLabel: t('scheduledexport_asset_filename'),
-                    name: 'asset_filename',
-                    value: this.data.settings.asset_filename,
-                    emptyText: t('scheduledexport_asset_filename_example')
-                }, {
-                    xtype: 'checkbox',
-                    fieldLabel: t('scheduledexport_only_changes'),
-                    name: 'only_changes',
-                    value: this.data.settings.only_changes,
+                    return storedThis.isObjectFolder(data.records[0].data);
                 },
-                {
-                    xtype: 'checkbox',
-                    fieldLabel: t('scheduledexport_add_timestamp'),
-                    name: 'add_timestamp',
-                    value: this.data.settings.add_timestamp,
-                },
-                {
-                    xtype: "form",
-                    bodyStyle: "padding: 10px; border: 1px;",
-                    style: "margin: 10px 0 10px 0",
-                    collapsible: true,
-                    collapsed: true,
-                    title: t('scheduledexport_advanced_settings'),
-                    items: [
-                        {
-                            xtype: 'textfield',
-                            fieldLabel: t('scheduledexport_delimiter'),
-                            name: 'delimiter',
-                            value: this.data.settings.delimiter,
-                            emptyText: t('scheduledexport_delimiter_example')
-                        }, {
-                            xtype: 'textfield',
-                            fieldLabel: t('scheduledexport_condition'),
-                            name: 'condition',
-                            value: this.data.settings.condition,
-                            emptyText: t('scheduledexport_condition_example')
-                        },
-                        {
-                            xtype: 'textfield',
-                            fieldLabel: t('scheduledexport_timestamp'),
-                            name: 'timestamp',
-                            value: this.data.settings.timestamp,
-                            emptyText: t('scheduledexport_timestamp_example')
-                        },
-                        {
-                            xtype: 'textfield',
-                            fieldLabel: t('scheduledexport_divide_file'),
-                            name: 'divide_file',
-                            value: this.data.settings.divide_file,
-                            emptyText: '1000'
-                        },
-                        {
-                            xtype: 'checkbox',
-                            fieldLabel: t('scheduledexport_preserve_process'),
-                            name: 'preserve_process',
-                            value: this.data.settings.preserve_process,
-                        },
-                        {
-                            xtype: 'textfield',
-                            fieldLabel: t('scheduledexport_types'),
-                            name: 'types',
-                            value: this.data.settings.types,
-                            emptyText: t('scheduledexport_types_example'),
-                        },
-                        {
-                            xtype: 'checkbox',
-                            fieldLabel: t('scheduledexport_add_utf_bom'),
-                            name: 'add_utf_bom',
-                            value: this.data.settings.add_utf_bom,
-                        },
-                    ]
-                }
-                ,
-            ];
-        },
+                listeners: {
+                    'render': function (el) {
+                        new Ext.dd.DropZone(el.getEl(), {
+                            reference: this,
+                            ddGroup: 'element',
+                            getTargetFromEvent: function (e) {
+                                return this.getEl();
+                            }.bind(el),
 
-        getGridConfig: function () {
-            var gridConfigStore = Ext.create("Ext.data.JsonStore", {
-                id: "gridConfigStore",
-                proxy: {
-                    type: "ajax",
-                    url: "/admin/scheduled-export/grid-config/get-list",
-                    reader: {
-                        type: 'json',
-                        rootProperty: 'result'
+                            onNodeOver: function (target, dd, e, data) {
+                                if (this.canDrop(data)) {
+                                    return Ext.dd.DropZone.prototype.dropAllowed;
+                                } else {
+                                    return Ext.dd.DropZone.prototype.dropNotAllowed;
+                                }
+                            }.bind(el),
+
+                            onNodeDrop: function (target, dd, e, data) {
+                                if (this.canDrop(data)) {
+                                    this.setValue(data.records[0].data.path);
+                                    return true;
+                                }
+                                return false;
+                            }.bind(el)
+                        });
+                    },
+                    'change': function (el) {
+                        console.log(el);
                     }
                 },
-                fields: ['id', 'name']
-            });
+                allowBlank: false
+            },
+            {
+                xtype: 'combo',
+                fieldLabel: t('scheduledexport_grid_config'),
+                name: 'GRID_CONFIG',
+                displayField: 'name',
+                valueField: 'id',
+                store: this.getGridConfig(),
+                emptyText: t('scheduledexport_select_grid_config'),
+                value: this.getFieldValue('GRID_CONFIG'),
+                allowBlank: false
+            },
+            {
+                xtype: 'textfield',
+                fieldLabel: t('scheduledexport_asset_folder'),
+                name: 'ASSET_FOLDER',
+                value: this.getFieldValue('ASSET_FOLDER'),
+                cls: 'input_drop_target',
+                canDrop: function(data)
+                {
+                    return storedThis.isAssetFolder(data.records[0].data);
+                },
+                listeners: {
+                    'render': function (el) {
+                        new Ext.dd.DropZone(el.getEl(), {
+                            reference: this,
+                            ddGroup: 'element',
+                            getTargetFromEvent: function (e) {
+                                return this.getEl();
+                            }.bind(el),
 
-            return gridConfigStore.load();
-        },
+                            onNodeOver: function (target, dd, e, data) {
+                                if (this.canDrop(data)) {
+                                    return Ext.dd.DropZone.prototype.dropAllowed;
+                                } else {
+                                    return Ext.dd.DropZone.prototype.dropNotAllowed;
+                                }
+                            }.bind(el),
 
-        isAssetFolder: function(data) {
-            return data.elementType === 'asset' && data.type === 'folder';
-        },
+                            onNodeDrop: function (target, dd, e, data) {
+                                if (this.canDrop(data)) {
+                                    this.setValue(data.records[0].data.path);
+                                    return true;
+                                }
+                                return false;
+                            }.bind(el)
+                        });
+                    }
+                },
+                allowBlank: false
+            },
+            {
+                xtype: 'textfield',
+                fieldLabel: t('scheduledexport_asset_filename'),
+                name: 'ASSET_FILENAME',
+                value: this.getFieldValue('ASSET_FILENAME'),
+                emptyText: t('scheduledexport_asset_filename_example')
+            },
+            {
+                xtype: 'checkbox',
+                fieldLabel: t('scheduledexport_only_changes'),
+                name: 'ONLY_CHANGES',
+                value: this.getFieldValue('ONLY_CHANGES'),
+            },
+            {
+                xtype: 'checkbox',
+                fieldLabel: t('scheduledexport_add_timestamp'),
+                name: 'ADD_TIMESTAMP',
+                value: this.getFieldValue('ADD_TIMESTAMP'),
+            },
+            {
+                xtype: "form",
+                bodyStyle: "padding: 10px; border: 1px;",
+                style: "margin: 10px 0 10px 0",
+                collapsible: true,
+                collapsed: true,
+                title: t('scheduledexport_advanced_settings'),
+                items: [
+                    {
+                        xtype: 'textfield',
+                        fieldLabel: t('scheduledexport_delimiter'),
+                        name: 'DELIMITER',
+                        value: this.getFieldValue('DELIMITER'),
+                        emptyText: t('scheduledexport_delimiter_example')
+                    }, {
+                        xtype: 'textfield',
+                        fieldLabel: t('scheduledexport_condition'),
+                        name: 'CONDITION',
+                        value: this.getFieldValue('CONDITION'),
+                        emptyText: t('scheduledexport_condition_example')
+                    },
+                    {
+                        xtype: 'textfield',
+                        fieldLabel: t('scheduledexport_timestamp'),
+                        name: 'TIMESTAMP',
+                        value: this.getFieldValue('TIMESTAMP'),
+                        emptyText: t('scheduledexport_timestamp_example')
+                    },
+                    {
+                        xtype: 'textfield',
+                        fieldLabel: t('scheduledexport_divide_file'),
+                        name: 'DIVIDE_FILE',
+                        value: this.getFieldValue('DIVIDE_FILE'),
+                        emptyText: '1000'
+                    },
+                    {
+                        xtype: 'textfield',
+                        fieldLabel: t('scheduledexport_types'),
+                        name: 'TYPES',
+                        value: this.getFieldValue('TYPES'),
+                        emptyText: t('scheduledexport_types_example'),
+                    },
+                    {
+                        xtype: 'checkbox',
+                        fieldLabel: t('scheduledexport_add_utf_bom'),
+                        name: 'ADD_UTF_BOM',
+                        value: this.getFieldValue('ADD_UTF_BOM'),
+                    },
+                ]
+            }
+            ,
+        ];
+    },
 
-        isObjectFolder: function(data) {
-            return data.elementType === 'object' && data.type === 'folder';
-        }
-    });
+    getGridConfig: function () {
+        var gridConfigStore = Ext.create("Ext.data.JsonStore", {
+            id: "gridConfigStore",
+            proxy: {
+                type: "ajax",
+                url: "/admin/scheduled-export/grid-config/get-list",
+                reader: {
+                    type: 'json',
+                    rootProperty: 'result'
+                }
+            },
+            fields: ['id', 'name']
+        });
+
+        return gridConfigStore.load();
+    },
+
+    isAssetFolder: function(data) {
+        return data.elementType === 'asset' && data.type === 'folder';
+    },
+
+    isObjectFolder: function(data) {
+        return data.elementType === 'object' && data.type === 'folder';
+    }
 });

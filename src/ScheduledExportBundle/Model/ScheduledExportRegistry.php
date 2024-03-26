@@ -7,10 +7,7 @@ namespace Divante\ScheduledExportBundle\Model;
 use Divante\ScheduledExportBundle\Model\ScheduledExportRegistry\Dao;
 use Exception;
 use Pimcore\Cache;
-use Pimcore\Model\Element\ElementInterface;
-use Pimcore\Model\Element\Service;
 use Pimcore\Model\AbstractModel;
-use Pimcore\Cache\Runtime;
 
 /**
  * @method Dao getDao()
@@ -20,25 +17,13 @@ class ScheduledExportRegistry extends AbstractModel
 {
     protected const WS_NAME = 'Scheduled_Export_Registry';
 
-    /**
-     * @var int
-     */
-    protected $id;
+    protected ?int $id = null;
 
-    /**
-     * @var string
-     */
-    protected $gridConfigId;
+    protected string $gridConfigId;
 
-    /**
-     * @var mixed
-     */
-    protected $data;
+    protected mixed $data = null;
 
-    /**
-     * @var array
-     */
-    protected static $nameIdMappingCache = [];
+    protected static array $nameIdMappingCache = [];
 
 
     public function __construct(string $gridConfigId = null, $data = null)
@@ -92,7 +77,7 @@ class ScheduledExportRegistry extends AbstractModel
         return $gridConfigId . '~~~' . self::WS_NAME;
     }
 
-    public function clearDependentCache()
+    public function clearDependentCache(): void
     {
         Cache::clearTag('scheduled_export_exports');
     }
@@ -103,7 +88,7 @@ class ScheduledExportRegistry extends AbstractModel
         $cacheKey = 'scheduled_export_exports_' . $id;
 
         try {
-            $export = Runtime::get($cacheKey);
+            $export = Cache\RuntimeCache::get($cacheKey);
             if (!$export) {
                 throw new Exception(sprintf('Scheduled export with ID `%s` does not exist.', $id));
             }
@@ -111,7 +96,7 @@ class ScheduledExportRegistry extends AbstractModel
             try {
                 $export = new self();
                 $export->getDao()->getById($id);
-                Runtime::set($cacheKey, $export);
+                Cache\RuntimeCache::set($cacheKey, $export);
             } catch (Exception $e) {
                 return null;
             }

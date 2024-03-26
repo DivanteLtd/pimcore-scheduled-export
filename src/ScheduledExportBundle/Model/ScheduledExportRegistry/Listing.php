@@ -12,12 +12,11 @@ use Pimcore\Model;
  * @method ScheduledExportRegistry[] load()
  * @method int getTotalCount()
  */
-class Listing extends Model\Listing\JsonListing
+class Listing
 {
-    /**
-     * @var array|null
-     */
-    protected $exports;
+    use Model\Listing\Traits\FilterListingTrait;
+    use Model\Listing\Traits\OrderListingTrait;
+    protected ?array $exports;
 
     public function setExports(array $exports): void
     {

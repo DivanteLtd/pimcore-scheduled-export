@@ -44,8 +44,8 @@ Enable the Bundle:
 
 ## Requirements
 
-* Pimcore 6.3
-* ProcessManager
+* Pimcore 10 (X)
+* [ProcessManager](https://github.com/elements-at/ProcessManager)
 
 ## Usage
 Prepare a gridconfig that you want to export, open up ProcessManager, create a new Scheduled Export Executable.
@@ -86,7 +86,7 @@ Pimcore Scheduled Export source code is completely free and released under the
 This module respects all Pimcore code quality rules and our own PHPCS and PHPMD rulesets.
 
 ## About Authors
-![Divante-logo](http://divante.co/logo-HG.png "Divante")
+![Divante-logo](https://www.divante.com/hubfs/raw_assets/public/Divante_March_2021/images/logo-new.svg "Divante")
 
 We are a Software House from Europe, existing from 2008 and employing about 150 people. Our core competencies are built 
 around Magento, Pimcore and bespoke software projects (we love Symfony3, Node.js, Angular, React, Vue.js). 
